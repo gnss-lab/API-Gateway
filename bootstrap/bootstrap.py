@@ -1,3 +1,4 @@
+from typing import NoReturn
 import uvicorn
 from uvicorn_loguru_integration import run_uvicorn_loguru
 from core.logging.loguru_init import logger_configuration
@@ -14,7 +15,7 @@ from core.api.api import app
 #     return {"filename": file.filename}
 
 
-def start_server() -> None:
+def start_server() -> NoReturn:
     run_uvicorn_loguru(
         uvicorn.Config(
             app=app,
@@ -26,6 +27,6 @@ def start_server() -> None:
     )
 
 
-def bootstrap() -> None:
+def bootstrap() -> NoReturn:
     logger_configuration()
     start_server()
