@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Request, UploadFile, File
 import aiohttp
-from core.api.modules.make_request import make_request
+from core.rest_api.modules.make_request import make_request
 from core.config.envs import DICT_ENVS
 from loguru import logger
 import io

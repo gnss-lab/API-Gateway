@@ -1,1 +1,1 @@
-from .bootstrap import bootstrap, app
+from .bootstrap import bootstrap
