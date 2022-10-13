@@ -13,4 +13,4 @@ def logger_configuration() -> None:
 
     logger.add(
         sys.stdout, colorize=True,
-        format="(<level>{level}</level>) [<green>{time:HH:mm:ss}</green>] ➤ <level>{message}</level>")
+        format="(<level>{level}</level>) [<cyan>{file}</cyan>:<cyan>{line}</cyan>] [<green>{time:HH:mm:ss}</green>] ➤ <level>{message}</level>")
