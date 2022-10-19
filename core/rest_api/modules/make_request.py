@@ -1,8 +1,7 @@
-from typing import Union
 import aiohttp
 import async_timeout
+from typing import Union
 from core.config.envs import DICT_ENVS
-from loguru import logger
 
 
 async def make_request(
@@ -39,7 +38,6 @@ async def make_request(
     with async_timeout.timeout(DICT_ENVS["GATEWAY_TIMEOUT"]):
         async with aiohttp.ClientSession() as session:
             request = getattr(session, method)
-            logger.debug(f"{request}")
             async with request(url, data=data, headers=headers, params=params) as response:
                 data = await response.json()
                 return data, response.status

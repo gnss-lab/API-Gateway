@@ -1,17 +1,16 @@
 import re
-from fastapi import APIRouter, status, Request
+from fastapi import APIRouter, status, Request, Response
 from core.rest_api.modules.route_service import route_service
+from core.config.envs import DICT_ENVS
 
 router = APIRouter()
 
 
 @route_service(
     request_method=router.post,
-    path="/ping",
+    path="/mosgim/ping",
     status_code=status.HTTP_200_OK,
+    service_url=DICT_ENVS["MOSGIM_SERVICE_URL"]
 )
-async def ping_pong_mosgim(request: Request, text: str):
-
-    params = {"text": text}
-
-    return {"params": params}
+async def ping_pong_mosgim(request: Request):
+    pass
