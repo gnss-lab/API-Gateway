@@ -6,11 +6,21 @@ from loguru import logger
 from uvicorn_loguru_integration import run_uvicorn_loguru
 import uvicorn
 
+import fastapi_gateway_auto_generate
+from core.config.envs import DICT_ENVS
+
 
 class API:
     def __init__(self):
-        self.__app = FastAPI(debug=True)
+        self.__app: FastAPI = FastAPI(debug=True)
         self.__init_routes()
+
+        config: fastapi_gateway_auto_generate.Config = fastapi_gateway_auto_generate.Config(
+            fast_api_app=self.__app,
+            db_path="./database/database.db"
+        )
+
+        fastapi_gateway_auto_generate.Generator(config=config)
 
     def __init_routes(self):
         self.__app.include_router(FileUpload.router)
@@ -22,9 +32,9 @@ class API:
         run_uvicorn_loguru(
             uvicorn.Config(
                 app=self.__app,
-                host="127.0.0.1",
-                port=8000,
+                host=DICT_ENVS["IP_SERVER"],
+                port=DICT_ENVS["PORT_SERVER"],
                 log_level="info",
-                reload=True,
+                # reload=True,
             )
         )
