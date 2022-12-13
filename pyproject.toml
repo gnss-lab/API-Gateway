@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "api-gateway"
+version = "0.1.0"
+description = ""
+authors = ["Kalinka George <xitowzys@gmail.com>"]
+readme = "README.md"
+packages = [{include = "api_gateway"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.88.0"
+fastapi-gateway = {git = "https://github.com/xitowzys-ISZF/fastapi-gateway"}
+loguru = "^0.6.0"
+uvicorn-loguru-integration = "^0.3.0"
+environs = "^9.5.0"
+python-multipart = "^0.0.5"
+fastapi-gateway-auto-generate = {git = "https://github.com/xitowzys-ISZF/FastAPI-auto-generate-gateway.git"}
+
+
+[tool.poetry.group.dev.dependencies]
+autopep8 = "^2.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
