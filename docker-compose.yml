@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  core:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        APP_VERSION: "0.2.0-SNAPSHOT"
+    image: api-gateway-core:0.2.0-SNAPSHOT
+    volumes:
+      - database-api-gateway:/usr/src/app/database
+    ports:
+      - "7200:7200"
+    environment:
+      - FASTAPI_IP=0.0.0.0
+      - FASTAPI_PORT=7200
+      - LOGSTASH_HOST=0.0.0.0
+      - LOGSTASH_PORT=50000
+    command: ["python", "app.py"]
+
+volumes:
+  database-api-gateway:
