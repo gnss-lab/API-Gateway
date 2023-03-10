@@ -17,6 +17,9 @@ python-multipart = "^0.0.5"
 fastapi-gateway-auto-generate = {git = "https://github.com/xitowzys-ISZF/FastAPI-auto-generate-gateway.git#0.2.0-SNAPSHOT"}
 python-logstash = "^0.4.8"
 aiohttp = "^3.8.3"
+celery = "^5.2.7"
+flower = "^1.2.0"
+httpx = "^0.23.3"
 
 
 [tool.poetry.group.dev.dependencies]

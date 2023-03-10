@@ -5,13 +5,19 @@ from uvicorn_loguru_integration import run_uvicorn_loguru
 import uvicorn
 
 import fastapi_gateway_auto_generate
+
+from core.config.calery_config import settings
+from core.config.calery_utils import create_celery
 from core.config.envs import DICT_ENVS
 from core.rest_api.routers import upload_file_test
 
 
+celery = create_celery()
+
 class API:
     def __init__(self):
         self.__app: FastAPI = FastAPI(debug=True)
+
 
         @self.__app.middleware("http")
         async def add_process_time_header(request: Request, call_next):
@@ -37,6 +43,7 @@ class API:
         self.__app.include_router(upload_file_test.router)
         logger.success("Routers initialized")
 
+
     def run_uvicorn_server(self):
         run_uvicorn_loguru(
             uvicorn.Config(
@@ -44,6 +51,6 @@ class API:
                 host=DICT_ENVS["FASTAPI_IP"],
                 port=DICT_ENVS["FASTAPI_PORT"],
                 log_level="info",
-                # reload=True,
+                reload=True,
             )
         )
