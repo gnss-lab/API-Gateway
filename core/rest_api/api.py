@@ -14,7 +14,7 @@ class API:
 
         config: fastapi_gateway_auto_generate.Config = fastapi_gateway_auto_generate.Config(
             fast_api_app=self.__app,
-            db_path="./database/database.db"
+            db_path=DICT_ENVS["DATABASE_PATH"] # "./database/database.db"
         )
 
         fastapi_gateway_auto_generate.Generator(config=config)
