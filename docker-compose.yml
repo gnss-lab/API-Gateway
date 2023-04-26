@@ -17,6 +17,7 @@ services:
       - FASTAPI_PORT=7200
       - LOGSTASH_HOST=0.0.0.0
       - LOGSTASH_PORT=50000
+      - DATABASE_PATH=/usr/src/app/database/database.db
     command: ["python", "app.py"]
 
 volumes:
