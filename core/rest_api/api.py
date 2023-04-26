@@ -1,11 +1,38 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from loguru import logger
+from starlette.responses import JSONResponse
 from uvicorn_loguru_integration import run_uvicorn_loguru
 import uvicorn
 
 import fastapi_gateway_auto_generate
 from core.config.envs import DICT_ENVS
 from fastapi.middleware.cors import CORSMiddleware
+
+
+async def custom_cors_middleware(request: Request, call_next):
+    response = None
+    allowed_port = 9000
+    origin = request.headers.get("origin")
+
+    if origin and origin.endswith(f":{allowed_port}"):
+        response = await call_next(request)
+
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type, Accept"
+
+    if request.method == "OPTIONS" and response:
+        response = JSONResponse(content={})
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type, Accept"
+
+    if not response:
+        response = await call_next(request)
+
+    return response
 
 
 class API:
@@ -16,7 +43,7 @@ class API:
 
         config: fastapi_gateway_auto_generate.Config = fastapi_gateway_auto_generate.Config(
             fast_api_app=self.__app,
-            db_path=DICT_ENVS["DATABASE_PATH"] # "./database/database.db"
+            db_path=DICT_ENVS["DATABASE_PATH"]  # "./database/database.db"
         )
 
         fastapi_gateway_auto_generate.Generator(config=config)
@@ -25,15 +52,23 @@ class API:
         logger.success("Routers initialized")
 
     def __cors_settings(self):
-        origins = ["*"]
+        # def custom_origin_check(origin: str) -> bool:
+        #     # Check if the request comes from port 9000
+        #     return origin.endswith(':9000')
 
-        self.__app.add_middleware(
-            CORSMiddleware,
-            allow_origins=origins,
-            allow_credentials=True,
-            allow_methods=["*"],
-            allow_headers=["*"],
-        )
+        # origins = ["*"]
+        #
+        # self.__app.add_middleware(
+        #     CORSMiddleware,
+        #     allow_origin_callback=origins,
+        #     allow_credentials=True,
+        #     allow_methods=["*"],
+        #     allow_headers=["*"],
+        #     expose_headers=["*"],
+        #
+        # )
+
+        self.__app.middleware("http")(custom_cors_middleware)
 
         logger.success("Cors settings are installed")
 
