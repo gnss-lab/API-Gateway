@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "api-gateway"
-version = "0.2.0"
+version = "0.3.1"
 description = ""
 authors = ["Kalinka George <xitowzys@gmail.com>"]
 readme = "README.md"
@@ -9,12 +9,12 @@ packages = [{include = "api_gateway"}]
 [tool.poetry.dependencies]
 python = "^3.11"
 fastapi = "^0.88.0"
-fastapi-gateway = {git = "https://github.com/xitowzys-ISZF/fastapi-gateway"}
+fastapi-gateway-ultra = {git = "https://github.com/xitowzys-ISZF/FastAPI-Gateway-Ultra.git", rev="0.1.0-SNAPSHOT"}
 loguru = "^0.6.0"
 uvicorn-loguru-integration = "^0.3.0"
 environs = "^9.5.0"
 python-multipart = "^0.0.5"
-fastapi-gateway-auto-generate = {git = "https://github.com/xitowzys-ISZF/FastAPI-auto-generate-gateway.git#0.2.0-SNAPSHOT"}
+fastapi-gateway-auto-generate = {git = "https://github.com/xitowzys-ISZF/FastAPI-Auto-Generate-Gateway.git", rev="0.3.1-SNAPSHOT"}
 python-logstash = "^0.4.8"
 aiohttp = "^3.8.3"
 
