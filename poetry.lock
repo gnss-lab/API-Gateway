@@ -536,72 +536,60 @@ test = ["anyio[trio] (>=3.2.1,<4.0.0)", "black (==22.10.0)", "coverage[toml] (>=
 
 [[package]]
 name = "fastapi-gateway-auto-generate"
-version = "0.3.0"
+version = "0.3.1"
 description = "This library allows you to automatically generate requests for the API Gateway."
 category = "main"
 optional = false
-python-versions = "^3.11"
-files = []
-develop = false
+python-versions = ">=3.11,<4.0"
+files = [
+    {file = "fastapi_gateway_auto_generate-0.3.1-py3-none-any.whl", hash = "sha256:f67b5bf25e9e2b535c4bd1771b2b7e2213013de5b655511bd75ef1027c411deb"},
+    {file = "fastapi_gateway_auto_generate-0.3.1.tar.gz", hash = "sha256:9dd75aada7f8be2e016885b62b61bd88ccb0f0d0fd8e0099a826d5f250efb7f2"},
+]
 
 [package.dependencies]
-alembic = "^1.8.1"
-datamodel-code-generator = "^0.14.0"
-fastapi = "^0.88.0"
-fastapi-gateway-ultra = {git = "https://github.com/xitowzys-ISZF/FastAPI-Gateway-Ultra.git", rev = '0.1.0-SNAPSHOT'}
-fastapi-openapi-parser = {git = "https://github.com/xitowzys-ISZF/FastAPI-OpenAPI-Parser.git", rev = "1.0.1-SNAPSHOT"}
-loguru = "^0.6.0"
-makefun = "^1.15.0"
-python-multipart = "^0.0.5"
-rich = "^13.3.2"
-shortuuid = "^1.0.11"
-sqlalchemy = "^1.4.44"
-validators = "^0.20.0"
-
-[package.source]
-type = "git"
-url = "https://github.com/xitowzys-ISZF/FastAPI-Auto-Generate-Gateway.git"
-reference = "0.3.1-SNAPSHOT"
-resolved_reference = "0e27376ba13dd88acfa6fe0d8da0125256a94f0f"
+alembic = ">=1.8.1,<2.0.0"
+datamodel-code-generator = ">=0.14.0,<0.15.0"
+fastapi = ">=0.88.0,<0.89.0"
+fastapi-gateway-ultra = ">=0.1.1,<0.2.0"
+fastapi-openapi-parser = ">=1.0.1,<2.0.0"
+loguru = ">=0.7.0,<0.8.0"
+makefun = ">=1.15.0,<2.0.0"
+python-multipart = ">=0.0.5,<0.0.6"
+rich = ">=13.3.2,<14.0.0"
+shortuuid = ">=1.0.11,<2.0.0"
+sqlalchemy = ">=1.4.44,<2.0.0"
+validators = ">=0.20.0,<0.21.0"
 
 [[package]]
 name = "fastapi-gateway-ultra"
-version = "0.1.0"
+version = "0.1.1"
 description = "FastAPI gateway for microservices."
 category = "main"
 optional = false
-python-versions = "^3.7"
-files = []
-develop = false
+python-versions = ">=3.7,<4.0"
+files = [
+    {file = "fastapi_gateway_ultra-0.1.1-py3-none-any.whl", hash = "sha256:d3e8440f0ad9db9f990ad2229fb98a2ebffa36ee0afe11d66480365865e9f356"},
+    {file = "fastapi_gateway_ultra-0.1.1.tar.gz", hash = "sha256:e39529ebbaf473deed420bbd7b5752ee115dd15fb60ed43496d20610b3a2e5f4"},
+]
 
 [package.dependencies]
-aiohttp = "^3.7.4"
-ujson = "^5.5.0"
-
-[package.source]
-type = "git"
-url = "https://github.com/xitowzys-ISZF/FastAPI-Gateway-Ultra.git"
-reference = "0.1.0-SNAPSHOT"
-resolved_reference = "b4a77e2471862eb42662da28ed288bbf0fe4a35e"
+aiohttp = ">=3.7.4,<4.0.0"
+ujson = ">=5.5.0,<6.0.0"
 
 [[package]]
 name = "fastapi-openapi-parser"
-version = "0.1.0"
+version = "1.0.1"
 description = ""
 category = "main"
 optional = false
-python-versions = "^3.11"
-files = []
-develop = false
+python-versions = ">=3.11,<4.0"
+files = [
+    {file = "fastapi_openapi_parser-1.0.1-py3-none-any.whl", hash = "sha256:843a9d93eb524a4b86c184fb3aa63cc053f849196bfdc1f84ab491faf1b71970"},
+    {file = "fastapi_openapi_parser-1.0.1.tar.gz", hash = "sha256:d636168ed739c1667e57477dbbc55ca45c097b5c6de514b1e4e212230402b172"},
+]
 
 [package.dependencies]
-requests = "^2.28.2"
-
-[package.source]
-type = "git"
-url = "https://github.com/xitowzys-ISZF/FastAPI-OpenAPI-Parser.git"
-reference = "1.0.1-SNAPSHOT"
-resolved_reference = "2b2cc4c8cd79ef69bceb710be4a4971658e0c734"
+requests = ">=2.28.2,<3.0.0"
 
 [[package]]
 name = "frozenlist"
@@ -950,14 +938,14 @@ files = [
 
 [[package]]
 name = "loguru"
-version = "0.6.0"
+version = "0.7.0"
 description = "Python logging made (stupidly) simple"
 category = "main"
 optional = false
 python-versions = ">=3.5"
 files = [
-    {file = "loguru-0.6.0-py3-none-any.whl", hash = "sha256:4e2414d534a2ab57573365b3e6d0234dfb1d84b68b7f3b948e6fb743860a77c3"},
-    {file = "loguru-0.6.0.tar.gz", hash = "sha256:066bd06758d0a513e9836fd9c6b5a75bfb3fd36841f4b996bc60b547a309d41c"},
+    {file = "loguru-0.7.0-py3-none-any.whl", hash = "sha256:b93aa30099fa6860d4727f1b81f8718e965bb96253fa190fab2077aaad6d15d3"},
+    {file = "loguru-0.7.0.tar.gz", hash = "sha256:1612053ced6ae84d7959dd7d5e431a0532642237ec21f7fd83ac73fe539e03e1"},
 ]
 
 [package.dependencies]
@@ -965,7 +953,7 @@ colorama = {version = ">=0.3.4", markers = "sys_platform == \"win32\""}
 win32-setctime = {version = ">=1.0.0", markers = "sys_platform == \"win32\""}
 
 [package.extras]
-dev = ["Sphinx (>=4.1.1)", "black (>=19.10b0)", "colorama (>=0.3.4)", "docutils (==0.16)", "flake8 (>=3.7.7)", "isort (>=5.1.1)", "pytest (>=4.6.2)", "pytest-cov (>=2.7.1)", "sphinx-autobuild (>=0.7.1)", "sphinx-rtd-theme (>=0.4.3)", "tox (>=3.9.0)"]
+dev = ["Sphinx (==5.3.0)", "colorama (==0.4.5)", "colorama (==0.4.6)", "freezegun (==1.1.0)", "freezegun (==1.2.2)", "mypy (==v0.910)", "mypy (==v0.971)", "mypy (==v0.990)", "pre-commit (==3.2.1)", "pytest (==6.1.2)", "pytest (==7.2.1)", "pytest-cov (==2.12.1)", "pytest-cov (==4.0.0)", "pytest-mypy-plugins (==1.10.1)", "pytest-mypy-plugins (==1.9.3)", "sphinx-autobuild (==2021.3.14)", "sphinx-rtd-theme (==1.2.0)", "tox (==3.27.1)", "tox (==4.4.6)"]
 
 [[package]]
 name = "loguru-logging-intercept"
@@ -2116,4 +2104,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "4f9eedd73c6f5a32c70cc5c426eadd0b7d336aa8529073d9228f4428d85f9c48"
+content-hash = "8a5a5e3063758d0552347c098bb695bcf1ddd5559476ba7ea8182fbaa818b320"
