@@ -49,6 +49,10 @@ class API:
         fastapi_gateway_auto_generate.Generator(config=config)
 
     def __init_routes(self):
+        @self.__app.get("/health")
+        async def check_health():
+            return {"status": "ok"}
+
         logger.success("Routers initialized")
 
     def __cors_settings(self):
