@@ -1,19 +1,25 @@
-from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import Session
+from sqlalchemy.orm import sessionmaker
 
-db = SQLAlchemy()
+from config.envs import DICT_ENVS
 
-class UserModel(db.Model):
-    __tablename__ = 'users'
+DATABASE_URL = f"postgresql://{DICT_ENVS['POSTGRES_USER']}:{DICT_ENVS['POSTGRES_PASSWORD']}@{DICT_ENVS['POSTGRES_HOST']}:{DICT_ENVS['POSTGRES_PORT']}/{DICT_ENVS['POSTGRES_DB']}"
 
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    password = db.Column(db.String(120), nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-class TokenModel(db.Model):
-    __tablename__ = 'tokens'
+Base = declarative_base()
 
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
-    token = db.Column(db.String(255), nullable=False)
-    created_at = db.Column(db.TIMESTAMP, server_default=db.func.now(), nullable=False)
+
+def init_db():
+    Base.metadata.create_all(bind=engine)
+
+
+def get_db() -> Session:
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

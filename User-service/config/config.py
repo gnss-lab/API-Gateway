@@ -24,4 +24,5 @@ def create_app():
     return app, engine, SessionLocal
 
 def include_routers(app):
+    app.include_router(user.router, prefix="/user", tags=["user"])
     app.include_router(routers.consul.router, tags=["consul"])
