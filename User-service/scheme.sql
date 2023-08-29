@@ -1,0 +1,13 @@
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(80) NOT NULL UNIQUE,
+    password VARCHAR(120) NOT NULL,
+    email VARCHAR(120) NOT NULL UNIQUE
+);
+
+CREATE TABLE tokens (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    token VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+);
