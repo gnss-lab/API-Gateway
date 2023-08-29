@@ -1,9 +1,8 @@
 from config.config import create_app
-from core.consul_integration import register_consul
+from config.envs import DICT_ENVS
+import uvicorn
 
-if __name__ == '__main__':
-    app = create_app()
+if __name__ == "__main__":
 
-    register_consul()
-
-    app.run(debug=True)
+    app, _, _ = create_app()
+    uvicorn.run(app, host=DICT_ENVS["FASTAPI_IP"], port=DICT_ENVS["FASTAPI_PORT"])

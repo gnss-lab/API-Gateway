@@ -1,14 +1,16 @@
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
+from fastapi import FastAPI
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
 from config.envs import DICT_ENVS
 
-db = SQLAlchemy()
-
+Base = declarative_base()
 
 def create_app():
-    app = Flask(__name__)
-    app.config[
-        'SQLALCHEMY_DATABASE_URI'] = f"postgresql://{DICT_ENVS['POSTGRES_USER']}:{DICT_ENVS['POSTGRES_PASSWORD']}@{DICT_ENVS['POSTGRES_HOST']}:{DICT_ENVS['POSTGRES_PORT']}/{DICT_ENVS['POSTGRES_DB']}"
-    db.init_app(app)
+    app = FastAPI()
 
-    return app
+    db_url = f"postgresql://{DICT_ENVS['POSTGRES_USER']}:{DICT_ENVS['POSTGRES_PASSWORD']}@{DICT_ENVS['POSTGRES_HOST']}:{DICT_ENVS['POSTGRES_PORT']}/{DICT_ENVS['POSTGRES_DB']}"
+    engine = create_engine(db_url)
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+    return app, engine, SessionLocal
