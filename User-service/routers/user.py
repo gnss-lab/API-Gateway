@@ -4,9 +4,10 @@ from sqlalchemy.orm import Session
 
 from core.database.db import get_db
 from core.database.models import UserModel
-from core.database.token_table import create_token_db
+from core.database.token_table import create_token_db, verify_token
 from core.utils import create_jwt_token
-from dtos.user import UserCreateResponse, UserCreateRequest, UserLoginRequest, UserLoginResponse
+from dtos.user import UserCreateResponse, UserCreateRequest, UserLoginRequest, UserLoginResponse, \
+    UserVerifyTokenResponse, UserVerifyTokenRequest
 
 router = APIRouter()
 
@@ -33,3 +34,8 @@ async def login_user(login_request: UserLoginRequest, db: Session = Depends(get_
     create_token_db(db, user.id, token)
 
     return UserLoginResponse(message="User logged in", token=token)
+
+
+@router.get("/verify", response_model=UserVerifyTokenResponse)
+async def verify_user(user: UserVerifyTokenRequest = Depends(verify_token)):
+    return UserVerifyTokenResponse(message = "User token verified!", is_valid = True)

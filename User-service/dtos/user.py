@@ -19,3 +19,12 @@ class UserLoginRequest(BaseModel):
 class UserLoginResponse(BaseModel):
     message: str
     token: str
+
+
+class UserVerifyTokenRequest(BaseModel):
+    token: str
+
+
+class UserVerifyTokenResponse(BaseModel):
+    message: str
+    is_valid: bool
