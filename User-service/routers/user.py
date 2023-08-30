@@ -14,6 +14,13 @@ router = APIRouter()
 
 @router.post("/register", response_model=UserCreateResponse)
 async def register_user(user: UserCreateRequest, db: Session = Depends(get_db)):
+    existing_user = db.query(UserModel).filter(
+        (UserModel.username == user.username) | (UserModel.email == user.email)
+    ).first()
+
+    if existing_user:
+        raise HTTPException(status_code=400, detail="User with the same username or email already exists")
+
     hashed_password = bcrypt.hashpw(user.password.encode('utf-8'), bcrypt.gensalt())
     hashed_password_str = hashed_password.decode('utf-8')
     db_user = UserModel(username=user.username, password=hashed_password_str, email=user.email)
@@ -38,4 +45,4 @@ async def login_user(login_request: UserLoginRequest, db: Session = Depends(get_
 
 @router.get("/verify", response_model=UserVerifyTokenResponse)
 async def verify_user(user: UserVerifyTokenRequest = Depends(verify_token)):
-    return UserVerifyTokenResponse(message = "User token verified!", is_valid = True)
+    return UserVerifyTokenResponse(message="User token verified", is_valid=True)
