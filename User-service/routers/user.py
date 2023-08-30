@@ -1,27 +1,35 @@
+import bcrypt
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from core.models import UserModel, TokenModel
-from core.db import get_db
-from pydantic import BaseModel
+
+from core.database.db import get_db
+from core.database.models import UserModel
+from core.database.token_table import create_token_db
+from core.utils import create_jwt_token
+from dtos.user import UserCreateResponse, UserCreateRequest, UserLoginRequest, UserLoginResponse
 
 router = APIRouter()
 
-class UserCreate(BaseModel):
-    username: str
-    password: str
-    email: str
 
-@router.post("/register")
-async def register_user(user: UserCreate, db: Session = Depends(get_db)):
-    db_user = UserModel(**user.dict())
+@router.post("/register", response_model=UserCreateResponse)
+async def register_user(user: UserCreateRequest, db: Session = Depends(get_db)):
+    hashed_password = bcrypt.hashpw(user.password.encode('utf-8'), bcrypt.gensalt())
+    hashed_password_str = hashed_password.decode('utf-8')
+    db_user = UserModel(username=user.username, password=hashed_password_str, email=user.email)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
-    return {"message": "User registered"}
+    return UserCreateResponse(message="User registered")
 
-@router.post("/login")
-async def login_user(username: str, password: str, db: Session = Depends(get_db)):
-    user = db.query(UserModel).filter(UserModel.username == username).first()
-    if not user or user.password != password:
+
+@router.post("/login", response_model=UserLoginResponse)
+async def login_user(login_request: UserLoginRequest, db: Session = Depends(get_db)):
+    user = db.query(UserModel).filter(UserModel.username == login_request.username).first()
+
+    if not user or not bcrypt.checkpw(login_request.password.encode('utf-8'), user.password.encode('utf-8')):
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    return {"message": "User logged in"}
+
+    token = create_jwt_token(user.id)
+    create_token_db(db, user.id, token)
+
+    return UserLoginResponse(message="User logged in", token=token)
