@@ -9,4 +9,19 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - ./scheme.sql:/docker-entrypoint-initdb.d/scheme.sql
+    networks:
+      - user_service_network
+
+  user-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${FASTAPI_PORT}:${FASTAPI_PORT}"
+    env_file: .env
+    networks:
+      - user_service_network
+
+networks:
+  user_service_network:

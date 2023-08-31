@@ -5,7 +5,8 @@ from sqlalchemy.orm import Session
 from core.database.db import get_db
 from core.database.models import UserModel, TokenModel
 from core.database.token_table import create_token_db, delete_token_db, verify_token
-from core.utils import create_jwt_token
+from core.utils.utils import create_jwt_token
+
 from dtos.user import UserCreateResponse, UserCreateRequest, UserLoginRequest, UserLoginResponse, \
     UserVerifyTokenResponse, UserVerifyTokenRequest
 
