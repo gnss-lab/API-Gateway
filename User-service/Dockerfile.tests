@@ -1,0 +1,17 @@
+# Dockerfile.tests
+FROM python:3.11
+
+# Устанавливаем poetry
+RUN pip install poetry
+
+# Создаем и переходим в рабочую директорию
+WORKDIR /app
+
+# Копируем файлы poetry
+COPY poetry.lock pyproject.toml /app/
+
+# Устанавливаем зависимости проекта
+RUN poetry install --no-interaction --no-ansi
+
+# Копируем все файлы проекта
+COPY . /app/

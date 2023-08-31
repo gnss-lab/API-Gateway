@@ -1,0 +1,22 @@
+version: '3'
+services:
+  postgres-test:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpassword
+      POSTGRES_DB: testdb
+    ports:
+      - "5432:5432"
+
+  user-service-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.tests
+    environment:
+      PYTHONPATH: /app
+    volumes:
+      - .:/app
+    depends_on:
+      - postgres-test
+    command: ["poetry", "run", "pytest", "/app/tests/"]  # Команда для запуска тестов
