@@ -3,8 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from core.database.db import get_db
-from core.database.models import UserModel
-from core.database.token_table import create_token_db, verify_token
+from core.database.models import UserModel, TokenModel
+from core.database.token_table import create_token_db, delete_token_db, verify_token
 from core.utils import create_jwt_token
 from dtos.user import UserCreateResponse, UserCreateRequest, UserLoginRequest, UserLoginResponse, \
     UserVerifyTokenResponse, UserVerifyTokenRequest
@@ -37,10 +37,28 @@ async def login_user(login_request: UserLoginRequest, db: Session = Depends(get_
     if not user or not bcrypt.checkpw(login_request.password.encode('utf-8'), user.password.encode('utf-8')):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
+    existing_token = db.query(TokenModel).filter(TokenModel.user_id == user.id).first()
+
+    if existing_token:
+        return UserLoginResponse(message="User logged in", token=existing_token.token)
+
     token = create_jwt_token(user.id)
     create_token_db(db, user.id, token)
 
     return UserLoginResponse(message="User logged in", token=token)
+
+
+@router.post("/refresh-token", response_model=UserLoginResponse)
+async def refresh_token(login_request: UserLoginRequest, db: Session = Depends(get_db)):
+    user = db.query(UserModel).filter(UserModel.username == login_request.username).first()
+
+    if not user or not bcrypt.checkpw(login_request.password.encode('utf-8'), user.password.encode('utf-8')):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    new_token = create_jwt_token(user.id)
+    delete_token_db(db, user.id)
+    create_token_db(db, user.id, new_token)
+    return UserLoginResponse(message="Token refreshed", token=new_token)
 
 
 @router.get("/verify", response_model=UserVerifyTokenResponse)

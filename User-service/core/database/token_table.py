@@ -6,6 +6,11 @@ from core.database.db import get_db
 from core.database.models import TokenModel, UserModel
 
 
+def delete_token_db(db: Session, user_id: int):
+    db.query(TokenModel).filter(TokenModel.user_id == user_id).delete()
+    db.commit()
+
+
 def create_token_db(db: Session, user_id: int, token: str):
     db_token = TokenModel(user_id=user_id, token=token)
     db.add(db_token)
