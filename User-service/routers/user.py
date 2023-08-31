@@ -7,14 +7,25 @@ from core.database.models import UserModel, TokenModel
 from core.database.token_table import create_token_db, delete_token_db, verify_token
 from core.utils.utils import create_jwt_token
 
-from dtos.user import UserCreateResponse, UserCreateRequest, UserLoginRequest, UserLoginResponse, \
+from dtos.user import (
+    UserCreateResponse, UserCreateRequest, UserLoginRequest, UserLoginResponse,
     UserVerifyTokenResponse, UserVerifyTokenRequest
+)
 
 router = APIRouter()
 
-
 @router.post("/register", response_model=UserCreateResponse)
 async def register_user(user: UserCreateRequest, db: Session = Depends(get_db)):
+    """
+    Register a new user.
+
+    :param user: User registration request data.
+    :type user: UserCreateRequest
+    :param db: Database session.
+    :type db: Session
+    :return: User registration response.
+    :rtype: UserCreateResponse
+    """
     existing_user = db.query(UserModel).filter(
         (UserModel.username == user.username) | (UserModel.email == user.email)
     ).first()
@@ -30,9 +41,18 @@ async def register_user(user: UserCreateRequest, db: Session = Depends(get_db)):
     db.refresh(db_user)
     return UserCreateResponse(message="User registered")
 
-
 @router.post("/login", response_model=UserLoginResponse)
 async def login_user(login_request: UserLoginRequest, db: Session = Depends(get_db)):
+    """
+    Log in a user.
+
+    :param login_request: User login request data.
+    :type login_request: UserLoginRequest
+    :param db: Database session.
+    :type db: Session
+    :return: User login response.
+    :rtype: UserLoginResponse
+    """
     user = db.query(UserModel).filter(UserModel.username == login_request.username).first()
 
     if not user or not bcrypt.checkpw(login_request.password.encode('utf-8'), user.password.encode('utf-8')):
@@ -48,9 +68,18 @@ async def login_user(login_request: UserLoginRequest, db: Session = Depends(get_
 
     return UserLoginResponse(message="User logged in", token=token)
 
-
 @router.post("/refresh-token", response_model=UserLoginResponse)
 async def refresh_token(login_request: UserLoginRequest, db: Session = Depends(get_db)):
+    """
+    Refresh a user's authentication token.
+
+    :param login_request: User login request data.
+    :type login_request: UserLoginRequest
+    :param db: Database session.
+    :type db: Session
+    :return: User login response with refreshed token.
+    :rtype: UserLoginResponse
+    """
     user = db.query(UserModel).filter(UserModel.username == login_request.username).first()
 
     if not user or not bcrypt.checkpw(login_request.password.encode('utf-8'), user.password.encode('utf-8')):
@@ -61,7 +90,14 @@ async def refresh_token(login_request: UserLoginRequest, db: Session = Depends(g
     create_token_db(db, user.id, new_token)
     return UserLoginResponse(message="Token refreshed", token=new_token)
 
-
 @router.get("/verify", response_model=UserVerifyTokenResponse)
 async def verify_user(user: UserVerifyTokenRequest = Depends(verify_token)):
+    """
+    Verify a user's authentication token.
+
+    :param user: User token verification request data.
+    :type user: UserVerifyTokenRequest
+    :return: User token verification response.
+    :rtype: UserVerifyTokenResponse
+    """
     return UserVerifyTokenResponse(message="User token verified", is_valid=True)
