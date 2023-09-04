@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, TIMESTAMP
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.sql import func
 
-from core.database.db import Base, engine
+from src.core.database.db import Base, engine
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

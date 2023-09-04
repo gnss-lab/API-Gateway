@@ -1,6 +1,6 @@
 import sys
 from loguru import logger
-from config.config import DICT_ENVS
+from src.config.config import DICT_ENVS
 from logstash.handler_tcp import TCPLogstashHandler
 
 def logger_configuration() -> None:

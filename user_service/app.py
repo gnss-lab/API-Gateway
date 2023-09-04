@@ -1,5 +1,5 @@
-from config.config import create_app
-from config.envs import DICT_ENVS
+from src.config.config import create_app
+from src.config.envs import DICT_ENVS
 import uvicorn
 
 if __name__ == "__main__":

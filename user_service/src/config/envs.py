@@ -7,6 +7,8 @@ DICT_ENVS = {}
 
 DICT_ENVS["SECRET_KEY"] = env.str("SECRET_KEY")
 
+DICT_ENVS["TEST"] = env.bool("TEST")
+
 DICT_ENVS["GATEWAY_TIMEOUT"] = env.int("GATEWAY_TIMEOUT", 59)
 
 DICT_ENVS["FASTAPI_IP"] = env.str("FASTAPI_IP")

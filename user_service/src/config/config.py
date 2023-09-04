@@ -3,10 +3,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-import routers.consul
-from config.envs import DICT_ENVS
-from core.consul_integration import register_consul
-from routers import user
+from src.routers import consul, user
+from src.config.envs import DICT_ENVS
+from src.core.utils.consul_integration import register_consul
+from src.routers import user
 
 Base = declarative_base()
 
@@ -15,7 +15,8 @@ def create_app():
 
     include_routers(app)
 
-    register_consul()
+    if not DICT_ENVS["TEST"]:
+        register_consul()
 
     db_url = f"postgresql://{DICT_ENVS['POSTGRES_USER']}:{DICT_ENVS['POSTGRES_PASSWORD']}@{DICT_ENVS['POSTGRES_HOST']}:{DICT_ENVS['POSTGRES_PORT']}/{DICT_ENVS['POSTGRES_DB']}"
     engine = create_engine(db_url)
@@ -25,4 +26,4 @@ def create_app():
 
 def include_routers(app):
     app.include_router(user.router, prefix="/user", tags=["user"])
-    app.include_router(routers.consul.router, tags=["consul"])
+    app.include_router(consul.router, tags=["consul"])

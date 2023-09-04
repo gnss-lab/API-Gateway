@@ -2,8 +2,8 @@ from fastapi import Depends, HTTPException
 from sqlalchemy.orm import Session
 from starlette import status
 
-from core.database.db import get_db
-from core.database.models import TokenModel, UserModel
+from src.core.database.db import get_db
+from src.core.database.models import TokenModel, UserModel
 
 def delete_token_db(db: Session, user_id: int):
     """

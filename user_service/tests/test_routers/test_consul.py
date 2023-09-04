@@ -1,5 +1,5 @@
 from fastapi.testclient import TestClient
-from config.config import create_app
+from src.config.config import create_app
 
 app, _, _ = create_app()
 client = TestClient(app)

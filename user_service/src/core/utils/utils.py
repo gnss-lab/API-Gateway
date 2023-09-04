@@ -1,9 +1,8 @@
 from datetime import datetime, timedelta
 
 import jwt
-from sqlalchemy.orm import Session
 
-from config.envs import DICT_ENVS
+from src.config.envs import DICT_ENVS
 
 
 def create_jwt_token(user_id: int) -> str:
