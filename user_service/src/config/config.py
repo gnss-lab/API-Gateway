@@ -13,6 +13,14 @@ Base = declarative_base()
 def create_app():
     app = FastAPI()
 
+    tags_metadata = [
+        {
+            "name": "default",
+            "description": "Operations with users.",
+            "x-auto-generate-in-api-gateway": True,
+        }
+    ]
+
     include_routers(app)
 
     if not DICT_ENVS["TEST"]:
