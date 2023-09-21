@@ -1,8 +1,14 @@
+CREATE TABLE roles (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE
+);
+
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(80) NOT NULL UNIQUE,
     password VARCHAR(120) NOT NULL,
-    email VARCHAR(120) NOT NULL UNIQUE
+    email VARCHAR(120) NOT NULL UNIQUE,
+    role_id INTEGER REFERENCES roles(id)
 );
 
 CREATE TABLE tokens (
