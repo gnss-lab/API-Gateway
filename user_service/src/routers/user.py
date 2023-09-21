@@ -3,16 +3,17 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from src.core.database.db import get_db
-from src.core.database.models import UserModel, TokenModel
+from src.core.database.models import UserModel, TokenModel, ServiceModel, UserServiceModel
 from src.core.database.token_table import create_token_db, delete_token_db, verify_token
 from src.core.utils.utils import create_jwt_token
 
 from src.dtos.user import (
     UserCreateResponse, UserCreateRequest, UserLoginRequest, UserLoginResponse,
-    UserVerifyTokenResponse, UserVerifyTokenRequest
+    UserVerifyTokenResponse, UserVerifyTokenRequest, UserAccessResponse
 )
 
 router = APIRouter()
+
 
 @router.post("/register", response_model=UserCreateResponse)
 async def register_user(user: UserCreateRequest, db: Session = Depends(get_db)):
@@ -41,6 +42,7 @@ async def register_user(user: UserCreateRequest, db: Session = Depends(get_db)):
     db.refresh(db_user)
     return UserCreateResponse(message="User registered")
 
+
 @router.post("/login", response_model=UserLoginResponse)
 async def login_user(login_request: UserLoginRequest, db: Session = Depends(get_db)):
     """
@@ -68,6 +70,7 @@ async def login_user(login_request: UserLoginRequest, db: Session = Depends(get_
 
     return UserLoginResponse(message="User logged in", token=token)
 
+
 @router.post("/refresh-token", response_model=UserLoginResponse)
 async def refresh_token(login_request: UserLoginRequest, db: Session = Depends(get_db)):
     """
@@ -90,6 +93,7 @@ async def refresh_token(login_request: UserLoginRequest, db: Session = Depends(g
     create_token_db(db, user.id, new_token)
     return UserLoginResponse(message="Token refreshed", token=new_token)
 
+
 @router.get("/verify", response_model=UserVerifyTokenResponse)
 async def verify_user(user: UserVerifyTokenRequest = Depends(verify_token)):
     """
@@ -101,3 +105,46 @@ async def verify_user(user: UserVerifyTokenRequest = Depends(verify_token)):
     :rtype: UserVerifyTokenResponse
     """
     return UserVerifyTokenResponse(message="User token verified", is_valid=True)
+
+
+@router.post("/check-access", response_model=UserAccessResponse)
+async def check_access_to_service(service_name: str, token: str, db: Session = Depends(get_db)):
+    """
+    Check if the user with the given token has access to the specified service.
+
+    :param service_name: The name of the service to check access for.
+    :type service_name: str
+    :param token: The user's authentication token.
+    :type token: str
+    :param db: Database session.
+    :type db: Session
+    :return: User access response.
+    :rtype: UserAccessResponse
+    """
+    token_entry = db.query(TokenModel).filter(TokenModel.token == token).first()
+    if not token_entry:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    user = db.query(UserModel).filter(UserModel.id == token_entry.user_id).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+
+    if (
+            service := db.query(ServiceModel)
+                    .filter(ServiceModel.name == service_name)
+                    .first()
+    ):
+        return (
+            UserAccessResponse(message="Access granted", has_access=True)
+            if (
+                user_service_entry := db.query(UserServiceModel)
+                .filter(
+                    UserServiceModel.user_id == user.id,
+                    UserServiceModel.service_id == service.id,
+                )
+                .first()
+            )
+            else UserAccessResponse(message="Access denied", has_access=False)
+        )
+    else:
+        raise HTTPException(status_code=404, detail="Service not found")

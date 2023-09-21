@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class UserCreateRequest(BaseModel):
     """
     Represents the request model for creating a user.
@@ -15,6 +16,7 @@ class UserCreateRequest(BaseModel):
     password: str
     email: str
 
+
 class UserCreateResponse(BaseModel):
     """
     Represents the response model for user creation.
@@ -23,6 +25,7 @@ class UserCreateResponse(BaseModel):
     :type message: str
     """
     message: str
+
 
 class UserLoginRequest(BaseModel):
     """
@@ -36,6 +39,7 @@ class UserLoginRequest(BaseModel):
     username: str
     password: str
 
+
 class UserLoginResponse(BaseModel):
     """
     Represents the response model for user login.
@@ -48,6 +52,7 @@ class UserLoginResponse(BaseModel):
     message: str
     token: str
 
+
 class UserVerifyTokenRequest(BaseModel):
     """
     Represents the request model for verifying a user token.
@@ -56,6 +61,7 @@ class UserVerifyTokenRequest(BaseModel):
     :type token: str
     """
     token: str
+
 
 class UserVerifyTokenResponse(BaseModel):
     """
@@ -68,3 +74,15 @@ class UserVerifyTokenResponse(BaseModel):
     """
     message: str
     is_valid: bool
+
+
+class UserAccessResponse(BaseModel):
+    """
+    Represents the response for user access to a service.
+
+    Attributes:
+        message (str): A message describing the access status.
+        has_access (bool): Indicates whether the user has access to the service.
+    """
+    message: str
+    has_access: bool
