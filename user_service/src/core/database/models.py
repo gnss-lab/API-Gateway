@@ -1,10 +1,6 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, TIMESTAMP
-from sqlalchemy.orm import relationship, sessionmaker
-from sqlalchemy.sql import func
-
+from sqlalchemy import Column, Integer, String, ForeignKey, TIMESTAMP, Boolean
+from sqlalchemy.orm import relationship
 from src.core.database.db import Base, engine
-
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 class UserModel(Base):
@@ -17,6 +13,7 @@ class UserModel(Base):
         password (str): The hashed password of the user.
         email (str): The email of the user.
         tokens (relationship): The relationship to the tokens associated with the user.
+        role_id (int): The ID of the associated role.
     """
     __tablename__ = 'users'
 
@@ -24,6 +21,7 @@ class UserModel(Base):
     username = Column(String(80), unique=True, nullable=False)
     password = Column(String(120), nullable=False)
     email = Column(String(120), unique=True, nullable=False)
+    role_id = Column(Integer, ForeignKey('roles.id'), nullable=False)
     tokens = relationship("TokenModel", back_populates="user")
 
 
@@ -81,3 +79,17 @@ class UserServiceModel(Base):
     service_id = Column(Integer, ForeignKey('services.id', ondelete='CASCADE'), nullable=False)
     user = relationship("UserModel", back_populates="user_services")
     service = relationship("ServiceModel", back_populates="user_services")
+
+
+class RoleModel(Base):
+    """
+    Represents a role in the database.
+
+    Attributes:
+        id (int): The unique identifier of the role.
+        name (str): The name of the role.
+    """
+    __tablename__ = 'roles'
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(50), unique=True, nullable=False)
