@@ -6,6 +6,7 @@ from src.core.database.db import Base, engine
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+
 class UserModel(Base):
     """
     Represents a user in the database.
@@ -25,6 +26,7 @@ class UserModel(Base):
     email = Column(String(120), unique=True, nullable=False)
     tokens = relationship("TokenModel", back_populates="user")
 
+
 class TokenModel(Base):
     """
     Represents an authentication token in the database.
@@ -43,3 +45,39 @@ class TokenModel(Base):
     token = Column(String(255), nullable=False)
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
     user = relationship("UserModel", back_populates="tokens")
+
+
+class ServiceModel(Base):
+    """
+    Represents a service in the database.
+
+    Attributes:
+        id (int): The unique identifier of the service.
+        name (str): The name of the service.
+        user_services (relationship): The relationship to the users associated with the service.
+    """
+    __tablename__ = 'services'
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(255), unique=True, nullable=False)
+    user_services = relationship("UserServiceModel", back_populates="service")
+
+
+class UserServiceModel(Base):
+    """
+    Represents the relationship between users and services in the database.
+
+    Attributes:
+        id (int): The unique identifier of the relationship.
+        user_id (int): The ID of the associated user.
+        service_id (int): The ID of the associated service.
+        user (relationship): The relationship to the user associated with the relationship.
+        service (relationship): The relationship to the service associated with the relationship.
+    """
+    __tablename__ = 'user_services'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    service_id = Column(Integer, ForeignKey('services.id', ondelete='CASCADE'), nullable=False)
+    user = relationship("UserModel", back_populates="user_services")
+    service = relationship("ServiceModel", back_populates="user_services")
