@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-from src.routers import consul, user
+from src.routers import consul, user, role
 from src.config.envs import DICT_ENVS
 from src.core.utils.consul_integration import register_consul
 from src.routers import user
@@ -34,4 +34,5 @@ def create_app():
 
 def include_routers(app):
     app.include_router(user.router, prefix="/user", tags=["user"])
+    app.include_router(role.router, prefix="/role", tags=["role"])
     app.include_router(consul.router, tags=["consul"])
