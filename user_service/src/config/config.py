@@ -11,8 +11,6 @@ from src.routers import user
 Base = declarative_base()
 
 def create_app():
-    app = FastAPI()
-
     tags_metadata = [
         {
             "name": "default",
@@ -20,6 +18,8 @@ def create_app():
             "x-auto-generate-in-api-gateway": True,
         }
     ]
+
+    app = FastAPI(openapi_tags=tags_metadata)
 
     include_routers(app)
 
