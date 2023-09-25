@@ -5,7 +5,6 @@ from loguru import logger
 
 from src.core.database.db import get_db
 from src.core.database.models import UserModel, TokenModel, ServiceModel, UserServiceModel
-from src.core.repository.token_repository import create_token_db, delete_token_db, verify_token
 from src.core.repository.user_repository import UserRepository
 from src.core.utils.utils import create_jwt_token
 
@@ -65,7 +64,7 @@ async def login_user(login_request: UserLoginRequest, db: Session = Depends(get_
     try:
         user_repository = UserRepository(db)
 
-        user = await user_repository.get_user(login_request.username)
+        user = await user_repository.get_user_by_username(login_request.username)
 
         if not user or not bcrypt.checkpw(login_request.password.encode('utf-8'), user.password.encode('utf-8')):
             raise HTTPException(status_code=401, detail="Invalid credentials")
@@ -89,35 +88,52 @@ async def refresh_token(login_request: UserLoginRequest, db: Session = Depends(g
     """
     Refresh a user's authentication token.
 
-    :param login_request: User login request data.
-    :type login_request: UserLoginRequest
-    :param db: Database session.
-    :type db: Session
-    :return: User login response with refreshed token.
-    :rtype: UserLoginResponse
+    This endpoint allows you to refresh a user's authentication token.
+
+    :param UserLoginRequest login_request: Data for token refresh.
+    :param Session db: Database session. A dependency created using `get_db`.
+
+    :statuscode 200: Token refreshed successfully.
+    :statuscode 401: Invalid credentials.
+    :statuscode 500: Internal server error.
     """
-    user = db.query(UserModel).filter(UserModel.username == login_request.username).first()
+    try:
+        user_repository = UserRepository(db)
 
-    if not user or not bcrypt.checkpw(login_request.password.encode('utf-8'), user.password.encode('utf-8')):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        user = await user_repository.get_user_by_username(login_request.username)
 
-    new_token = create_jwt_token(user.id)
-    delete_token_db(db, user.id)
-    create_token_db(db, user.id, new_token)
-    return UserLoginResponse(message="Token refreshed", token=new_token)
+        if not user or not bcrypt.checkpw(login_request.password.encode('utf-8'), user.password.encode('utf-8')):
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+
+        new_token = create_jwt_token(user.id)
+        await user_repository.delete_tokens_by_user_id(user.id)
+        await user_repository.create_user_token(user.id, new_token)
+
+        return UserLoginResponse(message="Token refreshed", token=new_token)
+    except Exception as e:
+        logger.error(f"Error during token refresh: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/verify", response_model=UserVerifyTokenResponse)
-async def verify_user(user: UserVerifyTokenRequest = Depends(verify_token)):
+async def verify_user(user: UserVerifyTokenRequest, db: Session = Depends(get_db)):
     """
     Verify a user's authentication token.
 
-    :param user: User token verification request data.
-    :type user: UserVerifyTokenRequest
+    :param UserVerifyTokenRequest user: User token verification request data.
     :return: User token verification response.
     :rtype: UserVerifyTokenResponse
+
+    :statuscode 200: Token verified successfully.
+    :statuscode 401: Token is invalid.
     """
-    return UserVerifyTokenResponse(message="User token verified", is_valid=True)
+    user_repository = UserRepository(db)
+    is_valid_token = await user_repository.verify_user_token(user.token)
+
+    if is_valid_token:
+        return UserVerifyTokenResponse(message="User token verified", is_valid=True)
+    else:
+        raise HTTPException(status_code=401, detail="Token is invalid")
 
 
 @router.post("/check-access", response_model=UserAccessResponse)

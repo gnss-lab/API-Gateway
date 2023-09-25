@@ -22,7 +22,7 @@ class UserRepository:
             (UserModel.username == user.username) | (UserModel.email == user.email)
         ).first() is not None
 
-    async def get_user(self, username: str):
+    async def get_user_by_username(self, username: str):
         """
         Get a user by username.
 
@@ -32,6 +32,17 @@ class UserRepository:
         :rtype: UserModel
         """
         return self.db.query(UserModel).filter(UserModel.username == username).first()
+
+    async def get_user_by_id(self, id: int):
+        """
+        Get a user by username.
+
+        :param username: Id of the user to retrieve.
+        :type id: int
+        :return: The user model if found, None otherwise.
+        :rtype: UserModel
+        """
+        return self.db.query(UserModel).filter(UserModel.id == id).first()
 
     async def create_user(self, user: UserModel):
         """
@@ -79,7 +90,7 @@ class UserRepository:
         self.db.commit()
         self.db.refresh(db_token)
 
-    async def verify_token(self, token: str):
+    async def verify_user_token(self, token: str):
         """
         Verify the validity of a user token.
 
