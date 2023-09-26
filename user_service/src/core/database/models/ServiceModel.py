@@ -16,4 +16,4 @@ class ServiceModel(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), unique=True, nullable=False)
-    user_services = relationship("UserServiceModel", back_populates="service")
+    user_services = relationship("UserServiceModel", back_populates="service", cascade="all, delete-orphan")

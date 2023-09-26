@@ -20,4 +20,5 @@ class TokenModel(Base):
     user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     token = Column(String(255), nullable=False)
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
-    user = relationship("UserModel", back_populates="tokens")
+
+    user = relationship("UserModel", back_populates="tokens", cascade="all, delete-orphan")
