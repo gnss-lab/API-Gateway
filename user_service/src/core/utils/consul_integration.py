@@ -1,6 +1,6 @@
 import consul
 from loguru import logger
-from src.config.config import DICT_ENVS
+from src.config.envs import DICT_ENVS
 
 def register_consul() -> None:
     try:

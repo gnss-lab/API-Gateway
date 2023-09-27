@@ -18,5 +18,6 @@ class UserServiceModel(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     service_id = Column(Integer, ForeignKey('services.id', ondelete='CASCADE'), nullable=False)
+
     user = relationship("UserModel", back_populates="user_services")
     service = relationship("ServiceModel", back_populates="user_services")

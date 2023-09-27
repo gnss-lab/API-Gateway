@@ -23,5 +23,5 @@ class UserModel(Base):
     email = Column(String(120), unique=True, nullable=False)
     role_id = Column(Integer, ForeignKey('roles.id'), nullable=False)
 
-    tokens = relationship("TokenModel", back_populates="user", cascade="all, delete-orphan")
-    user_services = relationship("UserServiceModel", back_populates="service", cascade="all, delete-orphan")
+    tokens = relationship("TokenModel", back_populates="user")
+    user_services = relationship("UserServiceModel", back_populates="user", cascade="all, delete-orphan")

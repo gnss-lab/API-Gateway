@@ -21,6 +21,8 @@ def create_app():
     ]
 
     app = FastAPI(openapi_tags=tags_metadata)
+    # setup_admin_panel(app)
+
 
     include_routers(app)
 
