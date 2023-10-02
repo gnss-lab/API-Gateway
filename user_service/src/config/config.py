@@ -4,14 +4,16 @@ from sqlalchemy.ext.declarative import declarative_base
 
 from src.core.database.db import get_db
 from src.core.repository.role_repository import RoleRepository
+from src.core.repository.user_repository import UserRepository
 from src.routers import consul, user, role, service
 from src.config.envs import DICT_ENVS
 from src.core.utils.consul_integration import register_consul
 from src.routers import user
-
-Base = declarative_base()
+from fastapi.responses import JSONResponse
 
 from fastapi import FastAPI, Depends, HTTPException, status
+
+Base = declarative_base()
 
 
 def create_app():
@@ -38,8 +40,6 @@ def create_app():
     engine = create_engine(db_url)
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-    from fastapi.responses import JSONResponse
-
     @app.middleware("http")
     async def check_admin_config(request, call_next):
         if request.url.path.startswith("/docs") or request.url.path.startswith("/openapi.json"):
@@ -48,7 +48,7 @@ def create_app():
         elif request.url.path.startswith("/user/register"):
             return await call_next(request)
 
-        if not DICT_ENVS["ADMIN_CONFIGURED"]:
+        if not is_admin_configured():
             error_response = JSONResponse(
                 content={
                     "detail": "The administrator is not configured yet. Please set up an administrator account."},
@@ -65,3 +65,13 @@ def include_routers(app):
     app.include_router(role.router, prefix="/role", tags=["role"])
     app.include_router(service.router, prefix="/service", tags=["service"])
     app.include_router(consul.router, tags=["consul"])
+
+
+def is_admin_configured():
+    if not DICT_ENVS["ADMIN_CONFIGURED"]:
+        user_repository = UserRepository(next(get_db()))
+        if user_repository.is_any_admin_exists():
+            DICT_ENVS["ADMIN_CONFIGURED"] = True
+        else:
+            return False
+    return True

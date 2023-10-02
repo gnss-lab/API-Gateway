@@ -3,13 +3,25 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from src.config.envs import DICT_ENVS
 from src.core.database.db import get_db
-from src.core.database.models import RoleModel
 from src.core.repository.role_repository import RoleRepository
 from src.core.repository.user_repository import UserRepository
 from src.dtos.role import UserRoleAssignRequest, RoleDeleteResponse, RoleCreateResponse, RoleCreateRequest, RoleList
 
 router = APIRouter()
+
+
+async def check_admin_token(token):
+    user_repository = UserRepository(next(get_db()))
+    print(await user_repository.is_admin_token(token))
+    try:
+        user_repository = UserRepository(next(get_db()))
+        print(await user_repository.is_admin_token(token))
+        if not await user_repository.is_admin_token(token):
+            raise HTTPException(status_code=401, detail="Not an administrator token")
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="Invalid token")
 
 
 @router.get("/roles", response_model=List[RoleList], summary="Get all roles")
@@ -29,7 +41,8 @@ async def get_all_roles(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
-@router.post("/roles", response_model=RoleCreateResponse, summary="Create a new role")
+@router.post("/roles", response_model=RoleCreateResponse, summary="Create a new role",
+             dependencies=[Depends(check_admin_token)])
 async def create_role(role_request: RoleCreateRequest, db: Session = Depends(get_db)):
     """
     Create a new role.
@@ -42,12 +55,18 @@ async def create_role(role_request: RoleCreateRequest, db: Session = Depends(get
     """
     try:
         role_repository = RoleRepository(db)
-        return await role_repository.create_role(role_request.name)
+        if await role_repository.is_role_exist(role_request.name):
+            raise HTTPException(status_code=400,
+                                detail="Role with the same name already exists")  # TODO : always returns 500 error
+        else:
+            # Возвращать данные или что-то еще, если роль была успешно создана
+            return await role_repository.create_role(role_request.name)
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
-@router.delete("/roles/{role_id}", response_model=RoleDeleteResponse, summary="Delete a role by ID")
+@router.delete("/roles/{role_id}", response_model=RoleDeleteResponse, summary="Delete a role by ID",
+               dependencies=[Depends(check_admin_token)])
 async def delete_role(role_id: int, db: Session = Depends(get_db)):
     """
     Delete a role by ID.
@@ -69,7 +88,30 @@ async def delete_role(role_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
-@router.post("/user/{user_id}/roles", response_model=bool)
+@router.get("/user/{user_id}/roles", response_model=list, summary="Get user roles by ID")
+async def get_user_roles(user_id: int, db: Session = Depends(get_db)):
+    """
+    Get all roles of a user by their ID.
+
+    :param int user_id: The ID of the user.
+    :param Session db: Database session. A dependency created using `get_db`.
+
+    :statuscode 200: Roles retrieved successfully.
+    :statuscode 404: User not found.
+    :statuscode 500: Internal server error.
+    """
+    try:
+        role_repository = RoleRepository(db)
+        roles = await role_repository.get_user_roles_by_id(user_id)
+        if roles is not None:
+            return roles
+        else:
+            raise HTTPException(status_code=404, detail="User not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
+@router.post("/user/{user_id}/roles", response_model=bool, dependencies=[Depends(check_admin_token)])
 async def assign_role_to_user(role_request: UserRoleAssignRequest, db: Session = Depends(get_db)):
     """
     Assign a role to a user.

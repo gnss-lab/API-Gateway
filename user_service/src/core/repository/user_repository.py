@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from src.core.database.models import UserModel, TokenModel
+from src.core.database.models import UserModel, TokenModel, RoleModel
 from src.core.database.db import get_db
 from fastapi import HTTPException
 from starlette import status
@@ -43,6 +43,22 @@ class UserRepository:
         :rtype: UserModel
         """
         return self.db.query(UserModel).filter(UserModel.id == id).first()
+
+    async def is_admin_token(self, token: str):
+        """
+        Check if the token corresponds to an admin user.
+
+        :param token: Token to check.
+        :type token: str
+        :return: True if the token corresponds to an admin user, False otherwise.
+        :rtype: bool
+        """
+        admin_user = self.db.query(UserModel).join(TokenModel).filter(
+            TokenModel.token == token,
+            UserModel.role_id == (self.db.query(RoleModel).filter(RoleModel.name == 'admin').first()).id
+        ).first()
+
+        return admin_user is not None
 
     async def create_user(self, user: UserModel):
         """
@@ -107,3 +123,6 @@ class UserRepository:
                 detail="Invalid user token",
             )
         return user
+
+    async def is_any_admin_exists(self):
+        return self.db.query(UserModel).filter(UserModel.role_id == 1).first() is not None
