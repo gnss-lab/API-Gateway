@@ -3,8 +3,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from loguru import logger
 
+from src.config.envs import DICT_ENVS
 from src.core.database.db import get_db
 from src.core.database.models import UserModel, TokenModel, ServiceModel, UserServiceModel
+from src.core.repository.role_repository import RoleRepository
 from src.core.repository.user_repository import UserRepository
 from src.core.utils.utils import create_jwt_token
 
@@ -41,6 +43,11 @@ async def register_user(user: UserCreateRequest, db: Session = Depends(get_db)):
 
         db_user = UserModel(username=user.username, password=hashed_password_str, email=user.email)
         await user_repository.create_user(db_user)
+
+        if not DICT_ENVS["ADMIN_CONFIGURED"]:
+            role_repository = RoleRepository(db)
+            await role_repository.assign_role_to_user(1, 1)
+            DICT_ENVS["ADMIN_CONFIGURED"] = True
 
         return UserCreateResponse(message="User registered")
     except Exception as e:

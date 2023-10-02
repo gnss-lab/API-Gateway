@@ -1,4 +1,3 @@
-from fastapi import FastAPI
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.ext.declarative import declarative_base
@@ -11,6 +10,8 @@ from src.core.utils.consul_integration import register_consul
 from src.routers import user
 
 Base = declarative_base()
+
+from fastapi import FastAPI, Depends, HTTPException, status
 
 
 def create_app():
@@ -36,6 +37,25 @@ def create_app():
     db_url = f"postgresql://{DICT_ENVS['POSTGRES_USER']}:{DICT_ENVS['POSTGRES_PASSWORD']}@{DICT_ENVS['POSTGRES_HOST']}:{DICT_ENVS['POSTGRES_PORT']}/{DICT_ENVS['POSTGRES_DB']}"
     engine = create_engine(db_url)
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+    from fastapi.responses import JSONResponse
+
+    @app.middleware("http")
+    async def check_admin_config(request, call_next):
+        if request.url.path.startswith("/docs") or request.url.path.startswith("/openapi.json"):
+            return await call_next(request)
+
+        elif request.url.path.startswith("/user/register"):
+            return await call_next(request)
+
+        if not DICT_ENVS["ADMIN_CONFIGURED"]:
+            error_response = JSONResponse(
+                content={
+                    "detail": "The administrator is not configured yet. Please set up an administrator account."},
+                status_code=status.HTTP_403_FORBIDDEN,
+            )
+            return error_response
+        return await call_next(request)
 
     return app, engine, SessionLocal
 
