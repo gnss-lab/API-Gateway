@@ -96,6 +96,8 @@ async def login_user(login_request: UserLoginRequest, db: Session = Depends(get_
         await user_repository.create_user_token(user.id, token)
 
         return UserLoginResponse(message="User logged in", token=token)
+    except HTTPException as e:
+        raise e
     except Exception as e:
         logger.error(f"Error during user login: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -128,6 +130,8 @@ async def refresh_token(login_request: UserLoginRequest, db: Session = Depends(g
         await user_repository.create_user_token(user.id, new_token)
 
         return UserLoginResponse(message="Token refreshed", token=new_token)
+    except HTTPException as e:
+        raise e
     except Exception as e:
         logger.error(f"Error during token refresh: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")

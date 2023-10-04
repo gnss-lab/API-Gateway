@@ -107,6 +107,8 @@ async def get_user_roles(user_id: int, db: Session = Depends(get_db)):
             return roles
         else:
             raise HTTPException(status_code=404, detail="User not found")
+    except HTTPException as e:
+        raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal server error")
 
@@ -138,5 +140,7 @@ async def assign_role_to_user(role_request: UserRoleAssignRequest, db: Session =
                 raise HTTPException(status_code=404, detail="Role not found")
         else:
             raise HTTPException(status_code=404, detail="User not found")
+    except HTTPException as e:
+        raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal server error")
