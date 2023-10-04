@@ -13,6 +13,8 @@ from fastapi.responses import JSONResponse
 
 from fastapi import FastAPI, Depends, HTTPException, status
 
+from loguru import logger
+
 Base = declarative_base()
 
 
@@ -35,6 +37,9 @@ def create_app():
 
     if not DICT_ENVS["TEST"]:
         register_consul()
+
+    is_admin_configured()
+    logger.info(f"Is admin configured: {DICT_ENVS['ADMIN_CONFIGURED']}")
 
     db_url = f"postgresql://{DICT_ENVS['POSTGRES_USER']}:{DICT_ENVS['POSTGRES_PASSWORD']}@{DICT_ENVS['POSTGRES_HOST']}:{DICT_ENVS['POSTGRES_PORT']}/{DICT_ENVS['POSTGRES_DB']}"
     engine = create_engine(db_url)

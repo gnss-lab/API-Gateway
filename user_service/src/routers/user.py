@@ -34,6 +34,7 @@ async def register_user(user: UserCreateRequest, db: Session = Depends(get_db)):
     """
     try:
         user_repository = UserRepository(db)
+        role_repository = RoleRepository(db)
 
         if await user_repository.is_user_exist(user):
             raise HTTPException(status_code=400, detail="User with the same username or email already exists")
@@ -43,13 +44,23 @@ async def register_user(user: UserCreateRequest, db: Session = Depends(get_db)):
 
         db_user = UserModel(username=user.username, password=hashed_password_str, email=user.email)
         await user_repository.create_user(db_user)
+        db_user = await user_repository.get_user_by_username(user.username)
+
+        print(not DICT_ENVS["ADMIN_CONFIGURED"])
 
         if not DICT_ENVS["ADMIN_CONFIGURED"]:
-            role_repository = RoleRepository(db)
-            await role_repository.assign_role_to_user(1, 1)
-            DICT_ENVS["ADMIN_CONFIGURED"] = True
+            role_admin = await role_repository.get_role_by_name("admin")
+            if role_admin:
+                await role_repository.assign_role_to_user(1, role_admin.id)
+                DICT_ENVS["ADMIN_CONFIGURED"] = True
+        else:
+            role_user = await role_repository.get_role_by_name("user")
+            if role_user:
+                await role_repository.assign_role_to_user(db_user.id, role_user.id)
 
         return UserCreateResponse(message="User registered")
+    except HTTPException as e:
+        raise e
     except Exception as e:
         logger.error(f"Error during user registration: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
