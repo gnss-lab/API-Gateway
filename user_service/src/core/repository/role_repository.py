@@ -41,9 +41,13 @@ class RoleRepository:
             return role
         return None
 
-    async def get_user_roles_by_id(self, user_id):
-        if user := self.db.query(UserModel).filter(UserModel.id == user_id).first():
-            return user.roles
+    async def get_user_role_by_id(self, user_id):
+        if user := (
+                self.db.query(UserModel)
+                        .filter(UserModel.id == user_id)
+                        .first()
+        ):
+            return user.role_id
         return None
 
     def is_default_roles_exists(self):
@@ -54,14 +58,9 @@ class RoleRepository:
             return db_role_admin is not None and db_role_user is not None
         finally:
             self.db.close()
-    def create_default_roles(self):
-        try:
-            db_role_admin = RoleModel(name="admin")
-            db_role_user = RoleModel(name="user")
 
-            self.db.add(db_role_admin)
-            self.db.add(db_role_user)
+    async def create_default_roles(self):
+        default_roles = ["admin", "user"]
 
-            self.db.commit()
-        finally:
-            self.db.close()
+        for role_name in default_roles:
+            role = await self.create_role(role_name)
