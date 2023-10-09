@@ -30,11 +30,11 @@ class ServiceRepository:
         ).first()
 
         if existing_user_service:
-            return None
+            return False
 
         self.db.add(user_service)
         self.db.commit()
-        return user_service
+        return True
 
     async def get_service_by_id(self, service_id: int):
         return self.db.query(ServiceModel).filter(ServiceModel.id == service_id).first()
