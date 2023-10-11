@@ -1,3 +1,5 @@
+import asyncio
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.ext.declarative import declarative_base
@@ -31,7 +33,7 @@ def create_app():
 
     role_repository = RoleRepository(next(get_db()))
     if not role_repository.is_default_roles_exists():
-        role_repository.create_default_roles()
+        asyncio.run(role_repository.create_default_roles())
 
     include_routers(app)
 
@@ -75,7 +77,7 @@ def include_routers(app):
 def is_admin_configured():
     if not DICT_ENVS["ADMIN_CONFIGURED"]:
         user_repository = UserRepository(next(get_db()))
-        if user_repository.is_any_admin_exists():
+        if asyncio.run(user_repository.is_any_admin_exists()):
             DICT_ENVS["ADMIN_CONFIGURED"] = True
         else:
             return False
