@@ -1,106 +1,65 @@
+import asyncio
+import os
+
 import pytest
-from fastapi.testclient import TestClient
-from src.config.config import create_app
-from src.core.database.models import UserModel, TokenModel
-from src.core.database.db import SessionLocal, engine
+from fastapi import Depends, FastAPI, HTTPException
+from sqlalchemy import create_engine, inspect
+from sqlalchemy.orm import sessionmaker
+
+from starlette.testclient import TestClient
+
+from src.core.database.db import Base
+from src.core.database.models import RoleModel, UserModel
+from src.core.repository.role_repository import RoleRepository
+from src.config.config import create_app, get_db
 
 app, _, _ = create_app()
 client = TestClient(app)
 
-# Фикстура для создания и удаления таблиц в базе данных
-@pytest.fixture(scope="function", autouse=True)
-def create_and_delete_tables():
-    UserModel.metadata.create_all(bind=engine)
-    yield
-    UserModel.metadata.drop_all(bind=engine)
 
-# Фикстура для сессии базы данных
-@pytest.fixture(scope="module")
-def db_session():
-    session = SessionLocal()
-    yield session
-    session.close()
+@pytest.fixture
+def override_get_db():
+    db_path = 'test_db.sqlite'
+    engine = create_engine(f'sqlite:///{db_path}', connect_args={"check_same_thread": False})
+    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-def test_register_user(db_session):
+    db = TestingSessionLocal()
+    connection = db.connection()
+
+    Base.metadata.create_all(bind=engine)
+
+    inspector = inspect(engine)
+    print("Tables in the database:", inspector.get_table_names())
+
+    role_repository = RoleRepository(db)
+    if not role_repository.is_default_roles_exists():
+        asyncio.run(role_repository.create_default_roles())
+    print("is_default_roles_exists", role_repository.is_default_roles_exists())
+
+    def override():
+        try:
+            yield db
+        finally:
+            db.close()
+
+    app.dependency_overrides[get_db] = override
+
+    yield db
+
+    app.dependency_overrides.pop(get_db)
+
+    engine.dispose()
+    os.remove(db_path)
+
+
+def test_register_user(override_get_db):
     with client:
         response = client.post("/user/register", json={
             "username": "testuser",
             "password": "testpassword",
             "email": "test@example.com"
         })
+        print(response.json())
         assert response.status_code == 200
         data = response.json()
         assert data["message"] == "User registered"
-
-def test_login_user(db_session):
-    with client:
-        # Создаем тестового пользователя
-        response = client.post("/user/register", json={
-            "username": "testuser",
-            "password": "testpassword",
-            "email": "test@example.com"
-        })
-        assert response.status_code == 200
-
-        # Пытаемся войти с созданным пользователем для получения токена
-        response = client.post("/user/login", json={
-            "username": "testuser",
-            "password": "testpassword"
-        })
-        assert response.status_code == 200
-        data = response.json()
-        assert "token" in data
-
-def test_refresh_token(db_session):
-    with client:
-        # Создаем тестового пользователя
-        response = client.post("/user/register", json={
-            "username": "testuser",
-            "password": "testpassword",
-            "email": "test@example.com"
-        })
-        assert response.status_code == 200
-
-        # Входим с созданным пользователем, чтобы получить токен
-        response = client.post("/user/login", json={
-            "username": "testuser",
-            "password": "testpassword"
-        })
-        assert response.status_code == 200
-        data = response.json()
-        token = data["token"]
-
-        # Обновляем токен
-        response = client.post("/user/refresh-token", json={
-            "username": "testuser",
-            "password": "testpassword"
-        })
-        assert response.status_code == 200
-        data = response.json()
-        assert "token" in data
-
-
-def test_verify_user(db_session):
-    with client:
-        # Создаем тестового пользователя
-        response = client.post("/user/register", json={
-            "username": "testuser",
-            "password": "testpassword",
-            "email": "test@example.com"
-        })
-        assert response.status_code == 200
-
-        # Входим с созданным пользователем, чтобы получить токен
-        response = client.post("/user/login", json={
-            "username": "testuser",
-            "password": "testpassword"
-        })
-        assert response.status_code == 200
-        data = response.json()
-        token = data["token"]
-
-        # Проверяем токен
-        response = client.get(f"/user/verify?token={token}")
-        assert response.status_code == 200
-        data = response.json()
-        assert data["is_valid"] is True

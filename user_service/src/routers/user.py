@@ -33,6 +33,9 @@ async def register_user(user: UserCreateRequest, db: Session = Depends(get_db)):
     :statuscode 500: Internal server error.
     """
     try:
+        # connection_string = str(db.bind.url)
+        # logger.debug(f"Database connection string: {connection_string}")
+
         user_repository = UserRepository(db)
         role_repository = RoleRepository(db)
 
@@ -42,21 +45,18 @@ async def register_user(user: UserCreateRequest, db: Session = Depends(get_db)):
         hashed_password = bcrypt.hashpw(user.password.encode('utf-8'), bcrypt.gensalt())
         hashed_password_str = hashed_password.decode('utf-8')
 
-        db_user = UserModel(username=user.username, password=hashed_password_str, email=user.email)
-        await user_repository.create_user(db_user)
-        db_user = await user_repository.get_user_by_username(user.username)
-
         print(not DICT_ENVS["ADMIN_CONFIGURED"])
 
         if not DICT_ENVS["ADMIN_CONFIGURED"]:
-            role_admin = await role_repository.get_role_by_name("admin")
-            if role_admin:
-                await role_repository.assign_role_to_user(1, role_admin.id)
-                DICT_ENVS["ADMIN_CONFIGURED"] = True
+            role = await role_repository.get_role_by_name("admin")
         else:
-            role_user = await role_repository.get_role_by_name("user")
-            if role_user:
-                await role_repository.assign_role_to_user(db_user.id, role_user.id)
+            role = await role_repository.get_role_by_name("user")
+
+        if not role:
+            raise HTTPException(status_code=505, detail="Roles in the database are not configured!")
+
+        db_user = UserModel(username=user.username, password=hashed_password_str, email=user.email, role_id=role.id)
+        await user_repository.create_user(db_user)
 
         return UserCreateResponse(message="User registered")
     except HTTPException as e:
