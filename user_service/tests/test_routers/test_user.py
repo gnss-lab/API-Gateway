@@ -169,3 +169,78 @@ def test_login_user_nonexistent_user(override_get_db):
         assert login_response.status_code == 401
         data = login_response.json()
         assert data["detail"] == "Invalid credentials"
+
+
+def test_refresh_token_success(override_get_db):
+    # Создаем пользователя
+    DICT_ENVS["ADMIN_CONFIGURED"] = True
+
+    with client:
+        register_response = client.post("/user/register", json={
+            "username": "testrefreshuser",
+            "password": "testrefreshpassword",
+            "email": "testrefresh@example.com"
+        })
+        assert register_response.status_code == 200
+
+    # Входим и получаем токен
+    with client:
+        login_response = client.post("/user/login", json={
+            "username": "testrefreshuser",
+            "password": "testrefreshpassword"
+        })
+        assert login_response.status_code == 200
+        data = login_response.json()
+        assert data["message"] == "User logged in"
+        assert "token" in data
+        original_token = data["token"]
+
+    # Обновляем токен
+    with client:
+        refresh_response = client.post("/user/refresh-token", json={
+            "username": "testrefreshuser",
+            "password": "testrefreshpassword"
+        })
+        assert refresh_response.status_code == 200
+        data = refresh_response.json()
+        assert data["message"] == "Token refreshed"
+        assert "token" in data
+        new_token = data["token"]
+
+        # Убеждаемся, что новый токен отличается от оригинального
+        assert new_token != original_token
+
+def test_refresh_token_invalid_credentials(override_get_db):
+    # Создаем пользователя
+    DICT_ENVS["ADMIN_CONFIGURED"] = True
+
+    with client:
+        register_response = client.post("/user/register", json={
+            "username": "testrefreshuser",
+            "password": "testrefreshpassword",
+            "email": "testrefresh@example.com"
+        })
+        assert register_response.status_code == 200
+
+    # Пытаемся обновить токен с неверными учетными данными
+    with client:
+        refresh_response = client.post("/user/refresh-token", json={
+            "username": "testrefreshuser",
+            "password": "incorrectpassword"
+        })
+        assert refresh_response.status_code == 401
+        data = refresh_response.json()
+        assert data["detail"] == "Invalid credentials"
+
+def test_refresh_token_nonexistent_user(override_get_db):
+    # Пытаемся обновить токен несуществующего пользователя
+    DICT_ENVS["ADMIN_CONFIGURED"] = True
+
+    with client:
+        refresh_response = client.post("/user/refresh-token", json={
+            "username": "nonexistentuser",
+            "password": "somepassword"
+        })
+        assert refresh_response.status_code == 401
+        data = refresh_response.json()
+        assert data["detail"] == "Invalid credentials"
