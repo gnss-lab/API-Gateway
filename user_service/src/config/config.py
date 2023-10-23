@@ -55,7 +55,7 @@ def create_app():
         elif request.url.path.startswith("/user/register"):
             return await call_next(request)
 
-        if not is_admin_configured():
+        if not await is_admin_configured():
             error_response = JSONResponse(
                 content={
                     "detail": "The administrator is not configured yet. Please set up an administrator account."},
@@ -74,10 +74,10 @@ def include_routers(app):
     app.include_router(consul.router, tags=["consul"])
 
 
-def is_admin_configured():
+async def is_admin_configured():
     if not DICT_ENVS["ADMIN_CONFIGURED"]:
         user_repository = UserRepository(next(get_db()))
-        if asyncio.run(user_repository.is_any_admin_exists()):
+        if await user_repository.is_any_admin_exists():
             DICT_ENVS["ADMIN_CONFIGURED"] = True
         else:
             return False

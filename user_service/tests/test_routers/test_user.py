@@ -1,5 +1,7 @@
 import asyncio
+import contextlib
 import os
+import time
 
 import pytest
 from fastapi import Depends, FastAPI, HTTPException
@@ -8,10 +10,12 @@ from sqlalchemy.orm import sessionmaker
 
 from starlette.testclient import TestClient
 
+from src.config.envs import DICT_ENVS
 from src.core.database.db import Base
 from src.core.database.models import RoleModel, UserModel
 from src.core.repository.role_repository import RoleRepository
 from src.config.config import create_app, get_db
+from src.core.repository.user_repository import UserRepository
 
 app, _, _ = create_app()
 client = TestClient(app)
@@ -49,7 +53,10 @@ def override_get_db():
     app.dependency_overrides.pop(get_db)
 
     engine.dispose()
-    os.remove(db_path)
+    db.close()
+
+    with contextlib.suppress(PermissionError):
+        os.remove(db_path)
 
 
 def test_register_user(override_get_db):
@@ -63,3 +70,102 @@ def test_register_user(override_get_db):
         assert response.status_code == 200
         data = response.json()
         assert data["message"] == "User registered"
+
+
+def test_register_existing_user(override_get_db):
+    # Регистрация существующего пользователя должна вызвать ошибку 400
+    with client:
+        # Регистрация первого пользователя
+        response = client.post("/user/register", json={
+            "username": "testuser",
+            "password": "testpassword",
+            "email": "test@example.com"
+        })
+        assert response.status_code == 200
+
+        # Попытка зарегистрировать того же пользователя еще раз
+        response = client.post("/user/register", json={
+            "username": "testuser",
+            "password": "testpassword",
+            "email": "test@example.com"
+        })
+        assert response.status_code == 400
+        data = response.json()
+        assert data["detail"] == "User with the same username or email already exists"
+
+
+def test_register_user_admin_role(override_get_db):
+    # Проверка, что пользователь с ролью "admin" создается, если роли настроены
+    with client:
+        response = client.post("/user/register", json={
+            "username": "testadmin",
+            "password": "testpassword",
+            "email": "admin@example.com"
+        })
+        assert response.status_code == 200
+        data = response.json()
+        assert data["message"] == "User registered"
+
+        # Проверка, что пользователь с ролью "admin" создан
+        user_repository = UserRepository(override_get_db)
+        admin_user = asyncio.run(user_repository.get_user_by_username("testadmin"))
+        assert admin_user.role_id == 1
+
+
+def test_login_user(override_get_db):
+    # Создаем пользователя
+    DICT_ENVS["ADMIN_CONFIGURED"] = True
+    with client:
+        register_response = client.post("/user/register", json={
+            "username": "testloginuser",
+            "password": "testloginpassword",
+            "email": "testlogin@example.com"
+        })
+        assert register_response.status_code == 200
+
+    # Пытаемся войти с правильными учетными данными
+    with client:
+        login_response = client.post("/user/login", json={
+            "username": "testloginuser",
+            "password": "testloginpassword"
+        })
+        assert login_response.status_code == 200
+        data = login_response.json()
+        assert data["message"] == "User logged in"
+        assert "token" in data
+
+
+def test_login_user_invalid_credentials(override_get_db):
+    # Создаем пользователя
+    DICT_ENVS["ADMIN_CONFIGURED"] = True
+    with client:
+        register_response = client.post("/user/register", json={
+            "username": "testloginuser1",
+            "password": "testloginpassword1",
+            "email": "testlogin1@example.com"
+        })
+        assert register_response.status_code == 200
+
+    # Пытаемся войти с неверными учетными данными
+    with client:
+        login_response = client.post("/user/login", json={
+            "username": "testloginuser",
+            "password": "incorrectpassword"
+        })
+        assert login_response.status_code == 401
+        data = login_response.json()
+        assert data["detail"] == "Invalid credentials"
+
+
+def test_login_user_nonexistent_user(override_get_db):
+    # Пытаемся войти с учетными данными несуществующего пользователя
+    DICT_ENVS["ADMIN_CONFIGURED"] = True
+
+    with client:
+        login_response = client.post("/user/login", json={
+            "username": "nonexistentuser",
+            "password": "somepassword"
+        })
+        assert login_response.status_code == 401
+        data = login_response.json()
+        assert data["detail"] == "Invalid credentials"

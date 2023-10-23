@@ -1,3 +1,4 @@
+from loguru import logger
 from sqlalchemy.orm import Session
 from src.core.database.models import RoleModel, UserModel
 
