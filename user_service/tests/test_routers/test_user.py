@@ -210,6 +210,7 @@ def test_refresh_token_success(override_get_db):
         # Убеждаемся, что новый токен отличается от оригинального
         assert new_token != original_token
 
+
 def test_refresh_token_invalid_credentials(override_get_db):
     # Создаем пользователя
     DICT_ENVS["ADMIN_CONFIGURED"] = True
@@ -232,6 +233,7 @@ def test_refresh_token_invalid_credentials(override_get_db):
         data = refresh_response.json()
         assert data["detail"] == "Invalid credentials"
 
+
 def test_refresh_token_nonexistent_user(override_get_db):
     # Пытаемся обновить токен несуществующего пользователя
     DICT_ENVS["ADMIN_CONFIGURED"] = True
@@ -244,3 +246,58 @@ def test_refresh_token_nonexistent_user(override_get_db):
         assert refresh_response.status_code == 401
         data = refresh_response.json()
         assert data["detail"] == "Invalid credentials"
+
+
+def test_verify_user_valid_token(override_get_db):
+    # Создаем пользователя и получаем токен
+
+    DICT_ENVS["ADMIN_CONFIGURED"] = True
+    with client:
+        register_response = client.post("/user/register", json={
+            "username": "testverifyuser",
+            "password": "testverifypassword",
+            "email": "testverify@example.com"
+        })
+        assert register_response.status_code == 200
+
+        login_response = client.post("/user/login", json={
+            "username": "testverifyuser",
+            "password": "testverifypassword"
+        })
+        assert login_response.status_code == 200
+        data = login_response.json()
+        assert data["message"] == "User logged in"
+        assert "token" in data
+        token = data["token"]
+
+    # Проверяем токен
+    with client:
+        verify_response = client.get("/user/verify", params={"token": token})
+        assert verify_response.status_code == 200
+        data = verify_response.json()
+        assert data["message"] == "User token verified"
+        assert data["is_valid"] is True
+
+
+def test_verify_user_invalid_token(override_get_db):
+    DICT_ENVS["ADMIN_CONFIGURED"] = True
+
+    # Подменяем токен (например, добавляем символ в середину)
+    modified_token = "invalidtoken"
+
+    # Проверяем модифицированный токен
+    with client:
+        verify_response = client.get("/user/verify", params={"token": modified_token})
+        assert verify_response.status_code == 401
+        data = verify_response.json()
+        assert data["detail"] == "Invalid user token"
+
+
+def test_verify_user_missing_token(override_get_db):
+    DICT_ENVS["ADMIN_CONFIGURED"] = True
+    # Пытаемся проверить токен без передачи параметра
+    with client:
+        verify_response = client.get("/user/verify")
+        assert verify_response.status_code == 422
+        data = verify_response.json()
+        assert data["detail"][0]["msg"] == "Field required"
