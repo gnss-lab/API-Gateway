@@ -138,7 +138,7 @@ async def refresh_token(login_request: UserLoginRequest, db: Session = Depends(g
 
 
 @router.get("/verify", response_model=UserVerifyTokenResponse)
-async def verify_user(user: UserVerifyTokenRequest, db: Session = Depends(get_db)):
+async def verify_user(token: str, db: Session = Depends(get_db)):
     """
     Verify a user's authentication token.
 
@@ -150,7 +150,7 @@ async def verify_user(user: UserVerifyTokenRequest, db: Session = Depends(get_db
     :statuscode 401: Token is invalid.
     """
     user_repository = UserRepository(db)
-    is_valid_token = await user_repository.verify_user_token(user.token)
+    is_valid_token = await user_repository.verify_user_token(token)
 
     if is_valid_token:
         return UserVerifyTokenResponse(message="User token verified", is_valid=True)
