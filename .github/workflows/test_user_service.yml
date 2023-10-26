@@ -32,7 +32,7 @@ jobs:
       - name: Load Database Schema
         run: |
           cd user_service
-          PGPASSWORD=1234 psql -h localhost -U postgres -d user_service_db -a -f path/to/scheme.sql
+          PGPASSWORD=1234 psql -h localhost -U postgres -d user_service_db -a -f ./scheme.sql
 
       - name: Install Poetry
         run: |
