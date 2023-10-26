@@ -29,6 +29,11 @@ jobs:
         with:
           python-version: 3.11
 
+      - name: Load Database Schema
+        run: |
+          cd user_service
+          psql -h localhost -U postgres -d user_service_db -a -f path/to/scheme.sql
+
       - name: Install Poetry
         run: |
           python -m pip install --upgrade pip
