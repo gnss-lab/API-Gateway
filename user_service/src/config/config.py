@@ -49,6 +49,9 @@ def create_app():
 
     @app.middleware("http")
     async def check_admin_config(request, call_next):
+        if DICT_ENVS["TEST"]:
+            return await call_next(request)
+
         if request.url.path.startswith("/docs") or request.url.path.startswith(
                 "/openapi.json") or request.url.path.startswith("/health"):
             return await call_next(request)

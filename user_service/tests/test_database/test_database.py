@@ -1,21 +1,34 @@
+import asyncio
+
 import pytest
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
 from src.core.database.models import UserModel, TokenModel
-from src.core.database.db import SessionLocal, engine
+from src.core.database.db import SessionLocal, engine, Base
+from src.core.repository.role_repository import RoleRepository
+
+
 @pytest.fixture(scope="module")
 def db_session():
-    session = SessionLocal()
-    yield session
-    session.close()
+    db_path = 'test_db.sqlite'
+    engine = create_engine(f'sqlite:///{db_path}', connect_args={"check_same_thread": False})
+    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    db = TestingSessionLocal()
 
-@pytest.fixture(scope="module", autouse=True)
-def create_tables():
-    UserModel.metadata.create_all(bind=engine)
-    yield
-    UserModel.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+
+    role_repository = RoleRepository(db)
+    if not role_repository.is_default_roles_exists():
+        asyncio.run(role_repository.create_default_roles())
+
+    yield db
+    db.close()
+    Base.metadata.drop_all(bind=engine)
 
 def test_create_and_get_user(db_session):
     # Создаем пользователя
-    user = UserModel(username="testuser1", password="testpassword", email="test1@example.com")
+    user = UserModel(username="testuser1", password="testpassword", email="test1@example.com", role_id=1)
     db_session.add(user)
     db_session.commit()
 
@@ -27,10 +40,11 @@ def test_create_and_get_user(db_session):
     assert retrieved_user.username == "testuser1"
     assert retrieved_user.email == "test1@example.com"
 
+
 # Тест для создания и получения токена
 def test_create_and_get_token(db_session):
     # Создаем пользователя
-    user = UserModel(username="testuser2", password="testpassword", email="test2@example.com")
+    user = UserModel(username="testuser2", password="testpassword", email="test2@example.com", role_id=1)
     db_session.add(user)
     db_session.commit()
 
@@ -51,7 +65,7 @@ def test_create_and_get_token(db_session):
 # Тест для удаления пользователя
 def test_delete_user(db_session):
     # Создаем пользователя
-    user = UserModel(username="testuser3", password="testpassword", email="unique_email@example.com")
+    user = UserModel(username="testuser3", password="testpassword", email="unique_email@example.com", role_id=1)
     db_session.add(user)
     db_session.commit()
 
@@ -62,4 +76,3 @@ def test_delete_user(db_session):
     # Проверяем, что пользователя больше нет в базе данных
     deleted_user = db_session.query(UserModel).filter_by(username="testuser3").first()
     assert deleted_user is None
-

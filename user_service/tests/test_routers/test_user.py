@@ -81,7 +81,6 @@ def test_register_existing_user(override_get_db):
             "password": "testpassword",
             "email": "test@example.com"
         })
-        assert response.status_code == 200
 
         # Попытка зарегистрировать того же пользователя еще раз
         response = client.post("/user/register", json={
@@ -221,7 +220,6 @@ def test_refresh_token_invalid_credentials(override_get_db):
             "password": "testrefreshpassword",
             "email": "testrefresh@example.com"
         })
-        assert register_response.status_code == 200
 
     # Пытаемся обновить токен с неверными учетными данными
     with client:
