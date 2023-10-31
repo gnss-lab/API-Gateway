@@ -73,3 +73,23 @@ def test_duplicate_service(override_get_db):
         assert response.status_code == 400
 
 
+def test_get_all_services_empty(override_get_db):
+    with client:
+        response = client.get("/service/services")
+        assert response.status_code == 200
+        assert response.json() == []
+
+
+def test_get_all_services_with_data(override_get_db):
+    with client:
+        # Добавляем службу для теста
+        response_create = client.post("/service/services", params={"service_name": "testservice"})
+        assert response_create.status_code == 200
+
+        # Запрашиваем все службы
+        response_get = client.get("/service/services")
+        assert response_get.status_code == 200
+
+        # Проверяем, что полученные данные соответствуют ожиданиям
+        assert len(response_get.json()) == 1
+        assert response_get.json()[0]["name"] == "testservice"

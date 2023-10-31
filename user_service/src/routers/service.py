@@ -61,12 +61,19 @@ async def delete_service(service_id: int, db: Session = Depends(get_db)):
     """
     try:
         service_repository = ServiceRepository(db)
+
+        if await service_repository.get_service_by_id(service_id) is None:
+            raise HTTPException(status_code=404, detail="Service not found")
+
         deleted = await service_repository.delete_service(service_id)
         if not deleted:
             raise HTTPException(status_code=404, detail="Service not found")
         return {"message": "Service deleted successfully"}
+    except HTTPException as e:
+        raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal server error")
+
 
 
 @router.post("/user/{user_id}/services", summary="Assign a service to a user")
