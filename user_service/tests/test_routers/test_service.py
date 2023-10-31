@@ -93,3 +93,21 @@ def test_get_all_services_with_data(override_get_db):
         # Проверяем, что полученные данные соответствуют ожиданиям
         assert len(response_get.json()) == 1
         assert response_get.json()[0]["name"] == "testservice"
+
+
+def test_delete_service_success(override_get_db):
+    with client:
+        response_create = client.post("/service/services", params={"service_name": "testservice"})
+        assert response_create.status_code == 200
+        service_id = response_create.json()["id"]
+
+        response_delete = client.delete(f"/service/services/{service_id}")
+        assert response_delete.status_code == 200
+        assert response_delete.json() == {"message": "Service deleted successfully"}
+
+def test_delete_service_not_found(override_get_db):
+    with client:
+        response_delete = client.delete("/service/services/999")
+        print(response_delete.json())
+        assert response_delete.status_code == 404
+        assert response_delete.json() == {"detail": "Service not found"}
