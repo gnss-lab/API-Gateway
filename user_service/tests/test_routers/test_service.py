@@ -8,8 +8,11 @@ from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import sessionmaker
 from starlette.testclient import TestClient
 from src.config.config import create_app, get_db
+from src.core.database.models import UserModel, UserServiceModel
 from src.core.repository.role_repository import RoleRepository
 from src.core.database.db import Base
+from src.core.repository.service_repository import ServiceRepository
+from src.core.repository.user_repository import UserRepository
 
 app, _, _ = create_app()
 client = TestClient(app)
@@ -105,9 +108,74 @@ def test_delete_service_success(override_get_db):
         assert response_delete.status_code == 200
         assert response_delete.json() == {"message": "Service deleted successfully"}
 
+
 def test_delete_service_not_found(override_get_db):
     with client:
         response_delete = client.delete("/service/services/999")
         print(response_delete.json())
         assert response_delete.status_code == 404
         assert response_delete.json() == {"detail": "Service not found"}
+
+
+def test_assign_service_to_user_success(override_get_db):
+    with client:
+        user_repository = UserRepository(override_get_db)
+        user = asyncio.run(user_repository.create_user(
+            UserModel(username="test_user", password="test_password", email="test@example.com", role_id=1)))
+        service_repository = ServiceRepository(override_get_db)
+        service = asyncio.run(service_repository.create_service("test_service"))
+
+        response = client.post(f"service/user/{user.id}/services", params={"service_id": service.id})
+
+        assert response.status_code == 200
+        assert response.json() == {"message": "Service assigned successfully"}
+
+
+def test_assign_service_to_user_user_not_found(override_get_db):
+    with client:
+        # Создаем службу, но не создаем пользователя
+        service_repository = ServiceRepository(override_get_db)
+        service = asyncio.run(service_repository.create_service("test_service"))
+
+        # Вызываем endpoint для назначения службы несуществующему пользователю
+        response = client.post("/service/user/999/services", params={"service_id": service.id})
+
+        # Проверяем, что получаем ошибку 404
+        assert response.status_code == 404
+        assert response.json() == {"detail": "User not found"}
+
+
+def test_assign_service_to_user_service_not_found(override_get_db):
+    with client:
+        # Создаем пользователя, но не создаем службу
+        user_repository = UserRepository(override_get_db)
+        user = asyncio.run(user_repository.create_user(
+            UserModel(username="test_user", password="test_password", email="test@example.com", role_id=1)))
+
+        # Вызываем endpoint для назначения несуществующей службы пользователю
+        response = client.post(f"/service/user/{user.id}/services", params={"service_id": 999})
+
+        # Проверяем, что получаем ошибку 404
+        assert response.status_code == 404
+        assert response.json() == {"detail": "Service not found"}
+
+
+def test_assign_service_to_user_already_has_access(override_get_db):
+    with client:
+        # Создаем пользователя и службу
+        user_repository = UserRepository(override_get_db)
+        user = asyncio.run(user_repository.create_user(
+            UserModel(username="test_user", password="test_password", email="test@example.com", role_id=1)))
+        service_repository = ServiceRepository(override_get_db)
+        service = asyncio.run(service_repository.create_service("test_service"))
+
+        # Назначаем службу пользователю
+        user_service = UserServiceModel(user_id=user.id, service_id=service.id)
+        asyncio.run(service_repository.assign_service_to_user(user_service))
+
+        # Вызываем endpoint для назначения той же службы пользователю
+        response = client.post(f"/service/user/{user.id}/services", params={"service_id": service.id})
+
+        # Проверяем, что получаем сообщение об уже имеющемся доступе
+        assert response.status_code == 200
+        assert response.json() == {"message": "User already has access to this service"}

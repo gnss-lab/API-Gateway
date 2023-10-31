@@ -70,6 +70,7 @@ class UserRepository:
         self.db.add(user)
         self.db.commit()
         self.db.refresh(user)
+        return user
 
     async def get_user_token(self, user_id: int):
         """

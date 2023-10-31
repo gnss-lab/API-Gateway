@@ -104,7 +104,7 @@ async def assign_service_to_user(user_id: int, service_id: int, db: Session = De
         user_service = UserServiceModel(user_id=user_id, service_id=service_id)
         assigned_service = await service_repository.assign_service_to_user(user_service)
 
-        if assigned_service is not None:
+        if assigned_service:
             return {"message": "Service assigned successfully"}
         else:
             return {"message": "User already has access to this service"}
