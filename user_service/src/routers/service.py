@@ -38,9 +38,13 @@ async def create_service(service_name: str, db: Session = Depends(get_db)):
     """
     try:
         service_repository = ServiceRepository(db)
+        if await service_repository.get_service_by_name(service_name):
+            raise HTTPException(status_code=400, detail="Service already exists")
         return await service_repository.create_service(service_name)
+    except HTTPException as e:
+        raise e
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Internal server error") # TODO : checking if there is a service with the same name
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.delete("/services/{service_id}", summary="Delete a service by ID")
