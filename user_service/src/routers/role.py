@@ -88,10 +88,10 @@ async def delete_role(role_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
-@router.get("/user/{user_id}/roles", response_model=list, summary="Get user roles by ID")
+@router.get("/user/{user_id}/role", summary="Get user roles by ID")
 async def get_user_roles(user_id: int, db: Session = Depends(get_db)):
     """
-    Get all roles of a user by their ID.
+    Get role of a user by user ID.
 
     :param int user_id: The ID of the user.
     :param Session db: Database session. A dependency created using `get_db`.
@@ -102,9 +102,10 @@ async def get_user_roles(user_id: int, db: Session = Depends(get_db)):
     """
     try:
         role_repository = RoleRepository(db)
-        roles = await role_repository.get_user_roles_by_id(user_id)
-        if roles is not None:
-            return roles
+        role_id = await role_repository.get_user_role_by_id(user_id)
+        role = await role_repository.get_role_by_id(role_id)
+        if role is not None:
+            return role
         else:
             raise HTTPException(status_code=404, detail="User not found")
     except HTTPException as e:
@@ -113,8 +114,8 @@ async def get_user_roles(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
-@router.post("/user/{user_id}/roles", response_model=bool, dependencies=[Depends(check_admin_token)])
-async def assign_role_to_user(role_request: UserRoleAssignRequest, db: Session = Depends(get_db)):
+@router.post("/user/{user_id}/role", response_model=bool, dependencies=[Depends(check_admin_token)])
+async def assign_role_to_user(user_id: int, role_request: UserRoleAssignRequest, db: Session = Depends(get_db)):
     """
     Assign a role to a user.
 
@@ -130,11 +131,11 @@ async def assign_role_to_user(role_request: UserRoleAssignRequest, db: Session =
         role_repository = RoleRepository(db)
         user_repository = UserRepository(db)
 
-        user = await user_repository.get_user_by_id(role_request.user_id)
+        user = await user_repository.get_user_by_id(user_id)
         if user:
             role = await role_repository.get_role_by_id(role_request.role_id)
             if role:
-                await role_repository.assign_role_to_user(role_request.user_id, role_request.role_id)
+                await role_repository.assign_role_to_user(user_id, role_request.role_id)
                 return True
             else:
                 raise HTTPException(status_code=404, detail="Role not found")

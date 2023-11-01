@@ -15,7 +15,6 @@ class RoleDeleteResponse(BaseModel):
 
 
 class UserRoleAssignRequest(BaseModel):
-    user_id: int
     role_id: int
 
 class RoleList(BaseModel):
