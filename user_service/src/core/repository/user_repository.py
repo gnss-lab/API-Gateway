@@ -125,5 +125,16 @@ class UserRepository:
             )
         return user
 
+    async def delete_user_by_id(self, id):
+        """
+        Delete a user from the database by their ID.
+
+        :param id: The ID of the user to be deleted.
+        :type id: int
+        """
+        self.db.query(UserModel).filter(UserModel.id == id).delete()
+        await self.delete_tokens_by_user_id(id)
+        self.db.commit()
+
     async def is_any_admin_exists(self):
         return self.db.query(UserModel).filter(UserModel.role_id == 1).first() is not None

@@ -113,7 +113,8 @@ def test_delete_tokens_by_user_id(user_repository, db):
 
 
 def test_create_user_token(user_repository, db):
-    user = UserModel(id=10, username="create_token_user", password="create_token_password", email="create_token@example.com",
+    user = UserModel(id=10, username="create_token_user", password="create_token_password",
+                     email="create_token@example.com",
                      role_id=1)
 
     db.add(user)
@@ -153,3 +154,12 @@ def test_is_any_admin_exists(user_repository, db):
     db.commit()
 
     assert asyncio.run(user_repository.is_any_admin_exists())
+
+
+def test_delete_user(user_repository, db):
+    user = UserModel(id=10, username="delete_user", password="delete_password", email="delete@example.com", role_id=1)
+    db.add(user)
+    db.commit()
+    asyncio.run(user_repository.delete_user_by_id(10))
+
+    assert asyncio.run(user_repository.get_user_by_id(10)) is None
