@@ -9,7 +9,6 @@ packages = [{include = "api_gateway"}]
 [tool.poetry.dependencies]
 python = "^3.11"
 fastapi = "^0.88.0"
-fastapi-gateway-ultra = "^0.1.1"
 loguru = "^0.7.0"
 uvicorn-loguru-integration = "^0.3.0"
 environs = "^9.5.0"
@@ -19,6 +18,7 @@ python-logstash = "^0.4.8"
 aiohttp = "^3.8.3"
 logstash = "^0.1.dev0"
 python-consul = "^1.1.0"
+makefun = "^1.15.2"
 
 
 [tool.poetry.group.dev.dependencies]
