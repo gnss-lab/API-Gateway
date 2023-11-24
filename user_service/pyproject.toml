@@ -21,6 +21,8 @@ pyjwt = "^2.8.0"
 httpx = "^0.24.1"
 pytest = "^7.4.0"
 pytest-postgresql = "^5.0.0"
+fastapi-admin = { git = 'https://github.com/fastapi-admin/fastapi-admin.git' }
+sqladmin = "^0.16.0"
 
 
 [build-system]

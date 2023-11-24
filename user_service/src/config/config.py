@@ -4,7 +4,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.ext.declarative import declarative_base
 
-from src.core.database.db import get_db
+import src.core.database.db
+from src.config.admin_panel import config_admin_panel
+from src.core.database.db import get_db, engine
+from src.core.database.models import UserModel, RoleModel
 from src.core.repository.role_repository import RoleRepository
 from src.core.repository.user_repository import UserRepository
 from src.routers import consul, user, role, service
@@ -12,6 +15,7 @@ from src.config.envs import DICT_ENVS
 from src.core.utils.consul_integration import register_consul
 from src.routers import user
 from fastapi.responses import JSONResponse
+from sqladmin import Admin, ModelView
 
 from fastapi import FastAPI, Depends, HTTPException, status
 
@@ -30,6 +34,7 @@ def create_app():
     ]
 
     app = FastAPI(openapi_tags=tags_metadata)
+    config_admin_panel(app)
 
     role_repository = RoleRepository(next(get_db()))
     if not role_repository.is_default_roles_exists():
