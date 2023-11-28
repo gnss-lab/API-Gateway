@@ -9,14 +9,16 @@ packages = [{include = "api_gateway"}]
 [tool.poetry.dependencies]
 python = "^3.11"
 fastapi = "^0.88.0"
-fastapi-gateway-ultra = "^0.1.1"
+fastapi-gateway-ultra = { git = "https://github.com/gnss-lab/FastAPI-Gateway-Ultra.git", tag = "0.1.1-SNAPSHOT" }
 loguru = "^0.7.0"
 uvicorn-loguru-integration = "^0.3.0"
 environs = "^9.5.0"
 python-multipart = "^0.0.5"
-fastapi-gateway-auto-generate = { git = "https://github.com/gnss-lab/FastAPI-Auto-Generate-Gateway.git", tag = "0.3.2-SNAPSHOT" }
+fastapi-gateway-auto-generate = { git = "https://github.com/gnss-lab/FastAPI-Auto-Generate-Gateway.git", tag = "0.3.3-SNAPSHOT" }
 python-logstash = "^0.4.8"
 aiohttp = "^3.8.3"
+async-timeout = "^4.0.3"
+makefun = "^1.15.2"
 
 
 [tool.poetry.group.dev.dependencies]
