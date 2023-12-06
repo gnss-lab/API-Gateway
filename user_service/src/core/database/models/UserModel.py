@@ -2,7 +2,6 @@ from sqlalchemy import Column, Integer, String, ForeignKey, TIMESTAMP, Boolean
 from sqlalchemy.orm import relationship
 from src.core.database.db import Base, engine
 
-
 class UserModel(Base):
     """
     Represents a user in the database.
@@ -25,3 +24,4 @@ class UserModel(Base):
 
     tokens = relationship("TokenModel", back_populates="user")
     user_services = relationship("UserServiceModel", back_populates="user", cascade="all, delete-orphan")
+    role = relationship("RoleModel", back_populates="users")

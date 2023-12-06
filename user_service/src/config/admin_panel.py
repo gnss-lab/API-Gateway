@@ -38,5 +38,6 @@ class UserServices(ModelView, model=UserServiceModel):
 class Services(ModelView, model=ServiceModel):
     column_list = [ServiceModel.id, ServiceModel.name]
 
+
 class Tokens(ModelView, model=TokenModel):
     column_list = [TokenModel.id, TokenModel.token, TokenModel.user_id]
