@@ -24,7 +24,7 @@ def config_admin_panel(app):
 
 
 class Users(ModelView, model=UserModel):
-    column_list = [UserModel.id, UserModel.username, UserModel.email, UserModel.role_id, UserModel.tokens]
+    column_list = [UserModel.id, UserModel.username, UserModel.email, "role_name", UserModel.tokens]
 
 
 class Roles(ModelView, model=RoleModel):

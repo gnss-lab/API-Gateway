@@ -1,6 +1,7 @@
 from loguru import logger
 from sqlalchemy.orm import Session
-from src.core.database.models import RoleModel, UserModel
+from src.core.database.models import UserModel
+from src.core.database.models.RoleModel import RoleModel
 
 
 class RoleRepository:
@@ -53,7 +54,7 @@ class RoleRepository:
 
     def is_default_roles_exists(self):
         try:
-            db_role_admin = self.db.query(RoleModel).filter_by(name="admin").first()
+            db_role_admin = self.db.query(RoleModel).filter(RoleModel.name == "admin").first()
             db_role_user = self.db.query(RoleModel).filter_by(name="user").first()
 
             return db_role_admin is not None and db_role_user is not None

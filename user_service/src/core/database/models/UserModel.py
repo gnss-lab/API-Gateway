@@ -1,6 +1,11 @@
+import asyncio
+
 from sqlalchemy import Column, Integer, String, ForeignKey, TIMESTAMP, Boolean
 from sqlalchemy.orm import relationship
-from src.core.database.db import Base, engine
+from src.core.database.db import Base, engine, get_db
+from src.core.database.models.RoleModel import RoleModel
+from src.core.repository.role_repository import RoleRepository
+
 
 class UserModel(Base):
     """
@@ -25,3 +30,11 @@ class UserModel(Base):
     tokens = relationship("TokenModel", back_populates="user")
     user_services = relationship("UserServiceModel", back_populates="user", cascade="all, delete-orphan")
     role = relationship("RoleModel", back_populates="users")
+
+    @property
+    def role_name(self) -> str:
+        with next(get_db()) as db:
+            role = db.query(RoleModel).filter(RoleModel.id == self.role_id).first()
+        if role:
+            return role.name
+        return None
