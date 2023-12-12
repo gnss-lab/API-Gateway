@@ -1,6 +1,8 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, TIMESTAMP, Boolean
 from sqlalchemy.orm import relationship
-from src.core.database.db import Base, engine
+from src.core.database.db import Base, engine, get_db
+from src.core.database.models import UserModel, ServiceModel
+
 
 class UserServiceModel(Base):
     """
@@ -21,3 +23,15 @@ class UserServiceModel(Base):
 
     user = relationship("UserModel", back_populates="user_services")
     service = relationship("ServiceModel", back_populates="user_services")
+
+    @property
+    def user_name(self) -> str:
+        with next(get_db()) as db:
+            user = db.query(UserModel).filter(UserModel.id == self.user_id).first()
+        return user.username if user else None
+
+    @property
+    def service_name(self) -> str:
+        with next(get_db()) as db:
+            service = db.query(ServiceModel).filter(ServiceModel.id == self.service_id).first()
+        return service.name if service else None

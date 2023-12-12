@@ -32,7 +32,7 @@ class Roles(ModelView, model=RoleModel):
 
 
 class UserServices(ModelView, model=UserServiceModel):
-    column_list = [UserServiceModel.id, UserServiceModel.user_id, UserServiceModel.service_id]
+    column_list = [UserServiceModel.id, "user_name", "service_name"]
 
 
 class Services(ModelView, model=ServiceModel):
