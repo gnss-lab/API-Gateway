@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, TIMESTAMP, Boolean, func
 from sqlalchemy.orm import relationship
-from src.core.database.db import Base, engine
+from src.core.database.db import Base, engine, get_db
+from src.core.database.models import UserModel
 
 
 class TokenModel(Base):
@@ -22,3 +23,9 @@ class TokenModel(Base):
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
 
     user = relationship("UserModel", back_populates="tokens", cascade="all, delete-orphan", single_parent=True)
+
+    @property
+    def user_name(self) -> str:
+        with next(get_db()) as db:
+            user = db.query(UserModel).filter(UserModel.id == self.user_id).first()
+        return user.username if user else None
