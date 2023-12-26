@@ -3,6 +3,7 @@ import asyncio
 from sqlalchemy import Column, Integer, String, ForeignKey, TIMESTAMP, Boolean
 from sqlalchemy.orm import relationship
 from src.core.database.db import Base, engine, get_db
+from src.core.database.models import TokenModel
 from src.core.database.models.RoleModel import RoleModel
 from src.core.repository.role_repository import RoleRepository
 
@@ -38,3 +39,6 @@ class UserModel(Base):
         if role:
             return role.name
         return None
+
+    def __str__(self):
+        return self.username

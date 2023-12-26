@@ -23,9 +23,3 @@ class TokenModel(Base):
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
 
     user = relationship("UserModel", back_populates="tokens", cascade="all, delete-orphan", single_parent=True)
-
-    @property
-    def user_name(self) -> str:
-        with next(get_db()) as db:
-            user = db.query(UserModel).filter(UserModel.id == self.user_id).first()
-        return user.username if user else None
